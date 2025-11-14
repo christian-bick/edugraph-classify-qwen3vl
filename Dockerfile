@@ -1,5 +1,6 @@
 # Use an official NVIDIA CUDA base image - this version is compatible with our torch build
 FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu22.04
+COPY --from=ghcr.io/astral-sh/uv:0.9.9 /uv /uvx /bin/
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -21,10 +22,8 @@ ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
 # Copy the project definition file.
 COPY pyproject.toml .
 
-# Install dependencies using uv.
-# We install and use uv in the same layer, and then install the project and its dependencies.
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    /root/.local/bin/uv pip install --system --no-cache .
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync
 
 # --- Model Cache Layer ---
 # Define build-time argument for model size
