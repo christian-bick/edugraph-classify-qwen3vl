@@ -13,8 +13,8 @@ fi
 # --- Configuration from environment ---
 # These variables are now loaded from the .env file
 # PROJECT_ID
-# ZONE
-INSTANCE_NAME="qwen-training-vm"
+# VM_ZONE
+INSTANCE_NAME="qwen3vl-${RUN_MODE}"
 
 if [ -z "$PROJECT_ID" ]; then
     echo "Error: PROJECT_ID not found in .env file"
@@ -22,13 +22,13 @@ if [ -z "$PROJECT_ID" ]; then
 fi
 
 echo "--- Deleting existing VM instance (if any) ---"
-gcloud compute instances delete $INSTANCE_NAME --zone=$ZONE --quiet
+gcloud compute instances delete $INSTANCE_NAME --zone=$VM_ZONE --quiet
 
 echo "--- Creating new VM instance: $INSTANCE_NAME... ---"
 
 gcloud compute instances create $INSTANCE_NAME \
     --project=$PROJECT_ID \
-    --zone=$ZONE \
+    --zone=$VM_ZONE \
     --machine-type=g2-standard-8 \
     --boot-disk-size=200GB \
     --accelerator=type=nvidia-l4,count=1 \
@@ -37,7 +37,7 @@ gcloud compute instances create $INSTANCE_NAME \
     --maintenance-policy=TERMINATE \
     --provisioning-model=SPOT \
     --scopes=cloud-platform \
-    --metadata=install-gpu-driver=True,google-monitoring-enabled=true,MODEL_SIZE=${MODEL_SIZE},RUN_MODE=${RUN_MODE},SKIP_KI=${SKIP_KI},PROJECT_ID=${PROJECT_ID},REGION=${REGION},GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX},GCS_BUCKET_NAME=${GCS_BUCKET_NAME} \
+    --metadata=install-gpu-driver=True,google-monitoring-enabled=true,MODEL_SIZE=${MODEL_SIZE},RUN_MODE=${RUN_MODE},SKIP_KI=${SKIP_KI},PROJECT_ID=${PROJECT_ID},DOCKER_REGION=${REGION},GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX},GCS_BUCKET_NAME=${GCS_BUCKET_NAME} \
     --metadata-from-file=startup-script=gcp/startup.sh
 
 echo "VM creation command sent."
