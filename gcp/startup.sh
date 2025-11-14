@@ -15,14 +15,15 @@ MODEL_SIZE=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/MODEL_SIZE")
 RUN_MODE=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/RUN_MODE")
 SKIP_KI=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/SKIP_KI")
 PROJECT_ID=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/PROJECT_ID")
-DOCKER_REGION=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/REGION")
+DOCKER_REGION=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/DOCKER_REGION")
 GCS_BUCKET_FOLDER_PREFIX=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/GCS_BUCKET_FOLDER_PREFIX")
 GCS_BUCKET_NAME=$(curl -s -H "$METADATA_HEADER" "$METADATA_URL/GCS_BUCKET_NAME")
 
 # Define names for the repository and image
 REPO_NAME="${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}"
 IMAGE_NAME="qwen-trainer"
-IMAGE_TAG="$DOCKER_REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:latest"
+IMAGE_PREFIX="${DOCKER_REGION}-docker.pkg.dev"
+IMAGE_TAG="${IMAGE_PREFIX}/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:latest"
 
 echo "--- Startup script started ---"
 
@@ -43,7 +44,7 @@ fi
 
 # --- Authenticate with Artifact Registry ---
 echo "Authenticating with Google Artifact Registry..."
-gcloud auth configure-docker $DOCKER_REGION-docker.pkg.dev --quiet
+gcloud auth configure-docker $IMAGE_PREFIX --quiet
 
 # --- Pull the Docker image ---
 echo "Pulling Docker image: $IMAGE_TAG"
