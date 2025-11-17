@@ -22,7 +22,7 @@ ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
 # Copy the project definition file.
 COPY pyproject.toml uv.lock .
 
-RUN uv sync --frozen --no-cache
+RUN uv sync
 
 # --- Model Cache Layer ---
 # Define build-time argument for model size
