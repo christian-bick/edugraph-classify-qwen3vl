@@ -44,14 +44,14 @@ if [ "$SKIP_KI" != "true" ]; then
     echo "--- Generating ontology QA dataset for Stage 1 ---"
     uv run python scripts/generate_ontology_qa_v3.py
 
-    echo "--- Starting Stage 1: Knowledge Infusion ---"
+    echo "--- Initiating Stage 1: Knowledge Infusion ---"
     uv run python scripts/finetune_stage1_knowledge.py
     echo "--- Stage 1 complete. ---"
 else
     echo "--- Skipping Stage 1 (Knowledge Infusion) as requested. ---"
 fi
 
-echo "--- Starting Stage 2: Multimodal Training ---"
+echo "--- Initiating Stage 2: Multimodal Training ---"
 uv run python scripts/finetune_stage2_multimodal.py
 
 echo "--- All training stages complete! ---"
