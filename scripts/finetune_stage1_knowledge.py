@@ -64,6 +64,7 @@ def main():
         device_map="auto",
         trust_remote_code=True
     )
+    model.tie_weights()
     
     # Configure LoRA using the centralized config
     model = get_peft_model(model, stage1_config.lora_config)
