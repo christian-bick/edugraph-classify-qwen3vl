@@ -20,10 +20,9 @@ RUN curl -sSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --inst
 ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
 
 # Copy the project definition file.
-COPY pyproject.toml .
+COPY pyproject.toml uv.lock .
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync
+RUN uv sync --frozen --no-cache
 
 # --- Model Cache Layer ---
 # Define build-time argument for model size
