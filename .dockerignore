@@ -1,5 +1,5 @@
 # Ignore Python virtual environment
-qwen-env/
+.venv/
 
 # Ignore Git history
 .git/
