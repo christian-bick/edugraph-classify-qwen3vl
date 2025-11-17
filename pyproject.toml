@@ -15,7 +15,7 @@ dependencies = [
     "torchvision~=0.21.0",
 
     # Transformers and fine-tuning ecosystem
-    "transformers @ git+https://github.com/huggingface/transformers",
+    "transformers==4.57.1",
     "accelerate~=1.7.0",
     "torchcodec~=0.2",
     "peft~=0.17.1",
