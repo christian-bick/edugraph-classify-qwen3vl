@@ -43,16 +43,16 @@ dependencies = [
 ]
 
 # Define a named index for the PyTorch CUDA packages
-[[tool.uv.index]]
-name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu126"
-explicit = true
+#[[tool.uv.index]]
+#name = "pytorch-cuda"
+#url = "https://download.pytorch.org/whl/cu126"
+#explicit = true
 
 # Map specific packages to the named index
-[tool.uv.sources]
-torch = [
-  { index = "pytorch-cuda" },
-]
-torchvision = [
-  { index = "pytorch-cuda" },
-]
+#[tool.uv.sources]
+#torch = [
+#  { index = "pytorch-cuda" },
+#]
+#torchvision = [
+#  { index = "pytorch-cuda" },
+#]
