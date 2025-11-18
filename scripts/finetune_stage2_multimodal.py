@@ -11,6 +11,7 @@ from transformers import (
 from peft import get_peft_model, PeftModel
 from trl import SFTConfig, SFTTrainer
 from scripts.config import get_config
+from scripts.data_processing import process_conversation_entry
 
 def main():
     # Load environment variables
@@ -74,8 +75,9 @@ def main():
     # --- Data Loading and Simplified Formatting ---
     dataset = load_dataset("json", data_files=multimodal_dataset_path, split="train")
 
-    with open("prompts/classification_v2.txt", "r") as f:
-        prompt_text = f.read()
+    # The prompt_text is now part of scripts.data_processing.PROMPT_TEXT
+    # with open("prompts/classification_v2.txt", "r") as f:
+    #     prompt_text = f.read()
 
     def format_chat_messages(examples):
         """
@@ -84,21 +86,15 @@ def main():
         The 'image' column is passed through automatically.
         """
         all_messages = []
-        # examples['conversations'] is a list of conversations
-        for conversation in examples['conversations']:
-            # Each conversation is a list of turns
-            # The second turn is the assistant's response
-            assistant_content = conversation[1]['value']
+        for i in range(len(examples['id'])): # Iterate over each example in the batch
+            single_example_entry = {
+                "id": examples['id'][i],
+                "image": examples['image'][i],
+                "conversations": examples['conversations'][i]
+            }
+            processed_chat = process_conversation_entry(single_example_entry)
+            all_messages.append(processed_chat)
             
-            # We create a single chat list for each example
-            chat = [
-                {"role": "system", "content": prompt_text},
-                {"role": "user", "content": [{"type": "image"}]},
-                {"role": "assistant", "content": assistant_content}
-            ]
-            all_messages.append(chat)
-            
-        # The returned dictionary must have lists of the same length
         return {"messages": all_messages}
 
     # Get the columns to remove, but be sure to keep the 'image' column

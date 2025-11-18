@@ -42,6 +42,11 @@ dependencies = [
     "awscli~=1.42.45"
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+]
+
 # Define a named index for the PyTorch CUDA packages
 #[[tool.uv.index]]
 #name = "pytorch-cuda"
