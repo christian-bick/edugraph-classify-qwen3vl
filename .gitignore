@@ -24,4 +24,4 @@ __pycache__
 /data
 /out
 
-.*log
+*.log
