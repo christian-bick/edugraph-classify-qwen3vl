@@ -6,12 +6,11 @@ from datasets import load_dataset
 from transformers import (
     AutoProcessor,
     BitsAndBytesConfig,
-    TrainingArguments,
     Qwen3VLForConditionalGeneration,
     DataCollatorForLanguageModeling,
 )
 from peft import get_peft_model
-from trl import SFTTrainer
+from trl import SFTConfig, SFTTrainer
 from scripts.config import get_config
 
 def main():
@@ -94,8 +93,8 @@ def main():
     # Instantiate a text-only data collator
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-    # Set up TrainingArguments
-    training_args = TrainingArguments(
+    # Set up SFTConfig
+    sft_config = SFTConfig(
         output_dir="out/results/knowledge_results",
         num_train_epochs=num_train_epochs,
         per_device_train_batch_size=2,
@@ -105,15 +104,15 @@ def main():
         save_strategy="epoch",
         fp16=True,
         remove_unused_columns=False,
+        dataset_text_field="text", # Specify the text field for SFTTrainer
     )
 
     # Trainer for text-only SFT
     print("Initializing SFTTrainer...")
     trainer = SFTTrainer(
         model=model,
-        args=training_args,
+        args=sft_config,
         train_dataset=processed_dataset,
-        dataset_text_field="text", # Specify the text field for SFTTrainer
         data_collator=data_collator,
     )
     print("SFTTrainer initialized.")

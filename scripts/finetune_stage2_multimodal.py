@@ -6,11 +6,10 @@ from datasets import load_dataset
 from transformers import (
     AutoProcessor,
     BitsAndBytesConfig,
-    TrainingArguments,
     Qwen3VLForConditionalGeneration,
 )
 from peft import get_peft_model, PeftModel
-from trl import SFTTrainer
+from trl import SFTConfig, SFTTrainer
 from scripts.config import get_config
 
 def main():
@@ -84,15 +83,23 @@ def main():
         which SFTTrainer will use to apply the template.
         The 'image' column is passed through automatically.
         """
-        messages = []
+        all_messages = []
+        # examples['conversations'] is a list of conversations
         for conversation in examples['conversations']:
+            # Each conversation is a list of turns
+            # The second turn is the assistant's response
             assistant_content = conversation[1]['value']
-            messages.append([
+            
+            # We create a single chat list for each example
+            chat = [
                 {"role": "system", "content": prompt_text},
                 {"role": "user", "content": [{"type": "image"}]},
                 {"role": "assistant", "content": assistant_content}
-            ])
-        return {"messages": messages}
+            ]
+            all_messages.append(chat)
+            
+        # The returned dictionary must have lists of the same length
+        return {"messages": all_messages}
 
     # Get the columns to remove, but be sure to keep the 'image' column
     columns_to_remove = [col for col in dataset.column_names if col != 'image']
@@ -104,7 +111,7 @@ def main():
         processed_dataset = processed_dataset.select(range(max_train_samples))
 
     # --- Trainer Setup and Execution ---
-    training_args = TrainingArguments(
+    sft_config = SFTConfig(
         output_dir="out/results/multimodal_results",
         num_train_epochs=num_train_epochs,
         per_device_train_batch_size=1,
@@ -115,16 +122,16 @@ def main():
         # Evaluation is removed as per the improvement suggestions
         bf16=True, 
         max_grad_norm=1.0,
+        dataset_text_field="messages", # Tell SFTTrainer which column has the chat messages
+        max_seq_length=2048, # Recommended to set a max sequence length
     )
 
     # Use SFTTrainer for a simpler training loop
     trainer = SFTTrainer(
         model=model,
         processor=processor, # Pass the processor to handle multimodal inputs
-        args=training_args,
+        args=sft_config,
         train_dataset=processed_dataset,
-        dataset_text_field="messages", # Tell SFTTrainer which column has the chat messages
-        max_seq_length=2048, # Recommended to set a max sequence length
     )
 
     print("Starting training with SFTTrainer...")
