@@ -11,7 +11,8 @@ from transformers import (
 from peft import get_peft_model, PeftModel
 from trl import SFTConfig, SFTTrainer
 from scripts.config import get_config
-from scripts.data_processing import process_conversation_entry
+from scripts.data_processing import load_and_format_dataset
+
 
 def main():
     # Load environment variables
@@ -73,38 +74,7 @@ def main():
     model.print_trainable_parameters()
 
     # --- Data Loading and Simplified Formatting ---
-    dataset = load_dataset("json", data_files=multimodal_dataset_path, split="train")
-
-    # The prompt_text is now part of scripts.data_processing.PROMPT_TEXT
-    # with open("prompts/classification_v2.txt", "r") as f:
-    #     prompt_text = f.read()
-
-    def format_chat_messages(examples):
-        """
-        Creates a 'messages' column with the chat dictionary,
-        which SFTTrainer will use to apply the template.
-        The 'image' column is passed through automatically.
-        """
-        all_messages = []
-        for i in range(len(examples['id'])): # Iterate over each example in the batch
-            single_example_entry = {
-                "id": examples['id'][i],
-                "image": examples['image'][i],
-                "conversations": examples['conversations'][i]
-            }
-            processed_chat = process_conversation_entry(single_example_entry)
-            all_messages.append(processed_chat)
-            
-        return {"messages": all_messages}
-
-    # Get the columns to remove, but be sure to keep the 'image' column
-    columns_to_remove = [col for col in dataset.column_names if col != 'image']
-    
-    # Apply the simple formatting
-    processed_dataset = dataset.map(format_chat_messages, batched=True, remove_columns=columns_to_remove)
-
-    if max_train_samples:
-        processed_dataset = processed_dataset.select(range(max_train_samples))
+    processed_dataset = load_and_format_dataset(multimodal_dataset_path, max_train_samples)
 
     # --- Trainer Setup and Execution ---
     sft_config = SFTConfig(

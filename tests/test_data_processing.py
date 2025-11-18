@@ -22,8 +22,8 @@ def test_process_conversation_entry_valid_data():
             assert len(processed_messages) == 3  # system, user, assistant
 
             # Check system message
-            assert processed_messages[0]["role"] == "system"
-            assert processed_messages[0]["content"] == PROMPT_TEXT
+            assert processed_messages[0]["role"] == "system"        
+            assert processed_messages[0]["content"] == [{"type": "text", "text": PROMPT_TEXT}]
 
             # Check user message
             assert processed_messages[1]["role"] == "user"
@@ -31,10 +31,8 @@ def test_process_conversation_entry_valid_data():
 
             # Check assistant message
             assert processed_messages[2]["role"] == "assistant"
-            # The content should be a string, which is the original GPT value
-            assert isinstance(processed_messages[2]["content"], str)
-            assert processed_messages[2]["content"] == entry["conversations"][1]["value"]
-
+            # The content should be a list of dict, which is the original GPT value
+            assert processed_messages[2]["content"] == [{"type": "text", "text": entry["conversations"][1]["value"]}]
 
 def test_process_conversation_entry_invalid_conversations_type():
     """

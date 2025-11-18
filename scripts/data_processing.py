@@ -47,9 +47,9 @@ def process_conversation_entry(entry: Dict[str, Any]) -> List[Dict[str, Any]]:
         return []
 
     chat_messages = [
-        {"role": "system", "content": PROMPT_TEXT},
+        {"role": "system", "content": [{"type": "text", "text": PROMPT_TEXT}]}, # Make content a list of dict
         {"role": "user", "content": [{"type": "image"}]},
-        {"role": "assistant", "content": assistant_content}
+        {"role": "assistant", "content": [{"type": "text", "text": assistant_content}]} # Make content a list of dict
     ]
     return chat_messages
 
