@@ -89,6 +89,7 @@ def main():
         bf16=True, 
         max_grad_norm=1.0,
         dataset_text_field="messages", # Tell SFTTrainer which column has the chat messages
+        max_length=4096,
     )
 
     # Use SFTTrainer for a simpler training loop
