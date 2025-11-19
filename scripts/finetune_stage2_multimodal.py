@@ -53,9 +53,10 @@ def main():
         bnb_4bit_use_double_quant=True
     )
 
+    # Load the base model in full precision for merging
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         base_model_id,
-        quantization_config=bnb_config,
+        torch_dtype=torch.bfloat16, # Use bfloat16 for memory efficiency
         device_map="auto",
         trust_remote_code=True
     )
@@ -73,18 +74,25 @@ def main():
         processor.save_pretrained(merged_model_path)
         print("Merged model saved successfully.")
         
-        # Reload the merged model to ensure a clean state
-        print("Reloading merged model...")
+        # Now, reload the merged model with quantization for training
+        print("Reloading merged model with 4-bit quantization...")
         model = Qwen3VLForConditionalGeneration.from_pretrained(
             merged_model_path,
             quantization_config=bnb_config,
             device_map="auto",
             trust_remote_code=True
         )
-        print("Merged model reloaded successfully.")
+        print("Merged model reloaded with quantization successfully.")
         
     else:
         print(f"Knowledge adapter not found at {knowledge_adapter_path}, proceeding with base model.")
+        # If no adapter, we still need to quantize the base model for consistency
+        model = Qwen3VLForConditionalGeneration.from_pretrained(
+            base_model_id,
+            quantization_config=bnb_config,
+            device_map="auto",
+            trust_remote_code=True
+        )
     
     model = get_peft_model(model, stage2_config.lora_config)
     print("Trainable parameters for Stage 2:")
