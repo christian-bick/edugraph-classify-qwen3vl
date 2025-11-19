@@ -66,6 +66,8 @@ def load_and_format_dataset(dataset_path: str, max_samples: int = None):
     """
     dataset = load_dataset("json", data_files=dataset_path, split="train")
     dataset = dataset.rename_column("image", "images")
+    # Transform the single image path string into a list containing that string
+    dataset = dataset.map(lambda example: {"images": [example["images"]]}, batched=False)
 
     def format_chat_messages(examples):
         """
