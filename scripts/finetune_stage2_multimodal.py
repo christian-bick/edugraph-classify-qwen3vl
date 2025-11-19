@@ -94,7 +94,7 @@ def main():
     # Use SFTTrainer for a simpler training loop
     trainer = SFTTrainer(
         model=model,
-        processor=processor, # Pass the processor to handle multimodal inputs
+        processing_class=processor, # Pass the processor to handle multimodal inputs
         args=sft_config,
         train_dataset=processed_dataset,
     )
