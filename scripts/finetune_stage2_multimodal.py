@@ -61,11 +61,28 @@ def main():
     )
 
     # --- Adapter Merging and Configuration ---
+    merged_model_path = "out/merged_model"
     if os.path.exists(knowledge_adapter_path):
         print(f"Loading and merging knowledge adapter from {knowledge_adapter_path}...")
         model = PeftModel.from_pretrained(model, knowledge_adapter_path)
         model = model.merge_and_unload()
         print("Knowledge adapter loaded and merged successfully.")
+        
+        print(f"Saving merged model to {merged_model_path}...")
+        model.save_pretrained(merged_model_path)
+        processor.save_pretrained(merged_model_path)
+        print("Merged model saved successfully.")
+        
+        # Reload the merged model to ensure a clean state
+        print("Reloading merged model...")
+        model = Qwen3VLForConditionalGeneration.from_pretrained(
+            merged_model_path,
+            quantization_config=bnb_config,
+            device_map="auto",
+            trust_remote_code=True
+        )
+        print("Merged model reloaded successfully.")
+        
     else:
         print(f"Knowledge adapter not found at {knowledge_adapter_path}, proceeding with base model.")
     
