@@ -95,7 +95,7 @@ def test_load_and_format_dataset_integration():
 
     # Check the structure of the first example
     first_example = processed_dataset[0]
-    assert "image" in first_example
+    assert "images" in first_example
     assert "messages" in first_example
 
     # Check the messages structure

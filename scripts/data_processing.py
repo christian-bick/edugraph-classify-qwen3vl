@@ -25,7 +25,7 @@ def process_conversation_entry(entry: Dict[str, Any]) -> List[Dict[str, Any]]:
                Expected structure:
                {
                    "id": str,
-                   "image": str,
+                   "images": str,
                    "conversations": [
                        {"from": "human", "value": str},
                        {"from": "gpt", "value": str}
@@ -65,18 +65,19 @@ def load_and_format_dataset(dataset_path: str, max_samples: int = None):
         A processed dataset.
     """
     dataset = load_dataset("json", data_files=dataset_path, split="train")
+    dataset = dataset.rename_column("image", "images")
 
     def format_chat_messages(examples):
         """
         Creates a 'messages' column with the chat dictionary,
         which SFTTrainer will use to apply the template.
-        The 'image' column is passed through automatically.
+        The 'images' column is passed through automatically.
         """
         all_messages = []
         for i in range(len(examples['id'])): # Iterate over each example in the batch
             single_example_entry = {
                 "id": examples['id'][i],
-                "image": examples['image'][i],
+                "images": examples['images'][i],
                 "conversations": examples['conversations'][i]
             }
             processed_chat = process_conversation_entry(single_example_entry)
@@ -84,8 +85,8 @@ def load_and_format_dataset(dataset_path: str, max_samples: int = None):
             
         return {"messages": all_messages}
 
-    # Get the columns to remove, but be sure to keep the 'image' column
-    columns_to_remove = [col for col in dataset.column_names if col != 'image']
+    # Get the columns to remove, but be sure to keep the 'images' column
+    columns_to_remove = [col for col in dataset.column_names if col != 'images']
     
     # Apply the simple formatting
     processed_dataset = dataset.map(format_chat_messages, batched=True, remove_columns=columns_to_remove)
