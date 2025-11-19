@@ -48,7 +48,14 @@ if [ "$SKIP_KI" != "true" ]; then
     uv run python scripts/finetune_stage1_knowledge.py
     echo "--- Stage 1 complete. ---"
 else
-    echo "--- Skipping Stage 1 (Knowledge Infusion) as requested. ---"
+    echo "--- Skipping Stage 1 (Knowledge Infusion) and downloading last adapter instead  ---"
+
+    mkdir -p out/adapters/knowledge_adapter
+
+    gsutil -m cp -r \
+      "gs://imagine-ml/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/adapters/knowledge_adapter" \
+      out/adapters/
+
 fi
 
 echo "--- Initiating Stage 2: Multimodal Training ---"
