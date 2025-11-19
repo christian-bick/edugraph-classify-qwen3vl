@@ -27,7 +27,10 @@ def test_process_conversation_entry_valid_data():
 
             # Check user message
             assert processed_messages[1]["role"] == "user"
-            assert processed_messages[1]["content"] == [{"type": "image"}]
+            assert processed_messages[1]["content"] == [
+                {"type": "text", "text": entry["conversations"][0]["value"]},
+                {"type": "image"}
+            ]
 
             # Check assistant message
             assert processed_messages[2]["role"] == "assistant"

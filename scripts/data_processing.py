@@ -41,15 +41,19 @@ def process_conversation_entry(entry: Dict[str, Any]) -> List[Dict[str, Any]]:
     if not isinstance(conversations, list) or len(conversations) < 2:
         return []
 
-    # Assuming the second conversation turn is always from 'gpt' and contains the assistant's content
+    # Extract content from both human and assistant turns
+    human_content = conversations[0].get('value')
     assistant_content = conversations[1].get('value')
-    if not isinstance(assistant_content, str):
+    if not isinstance(human_content, str) or not isinstance(assistant_content, str):
         return []
 
     chat_messages = [
-        {"role": "system", "content": [{"type": "text", "text": PROMPT_TEXT}]}, # Make content a list of dict
-        {"role": "user", "content": [{"type": "image"}]},
-        {"role": "assistant", "content": [{"type": "text", "text": assistant_content}]} # Make content a list of dict
+        {"role": "system", "content": [{"type": "text", "text": PROMPT_TEXT}]},
+        {"role": "user", "content": [
+            {"type": "text", "text": human_content},
+            {"type": "image"}
+        ]},
+        {"role": "assistant", "content": [{"type": "text", "text": assistant_content}]}
     ]
     return chat_messages
 
