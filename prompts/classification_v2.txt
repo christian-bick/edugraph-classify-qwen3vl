@@ -10,10 +10,10 @@ Follow these steps during the labeling process:
 
 Here are 4 examples of valid JSON responses:
 
-{"Areas": ["IntegerMultiplication"], "Scopes": ["NumbersSmaller10", "WithoutZero"], "Abilities": ["ProcedureExecution"]}
+{"Areas": ["IntegerMultiplication"], "Scopes": ["NumbersSmaller10", "NumbersWithoutZero"], "Abilities": ["ProcedureExecution"]}
 
-{"Areas": ["FractionAddition", "IntegerMultiplication"], "Scopes": ["NumbersSmaller1000", "WithNegativeNumbers"], "Abilities": ["ProcedureIdentification", "ProcedureExecution"]}
+{"Areas": ["FractionAddition", "IntegerMultiplication"], "Scopes": ["NumbersSmaller1000", "NumbersWithNegatives"], "Abilities": ["ProcedureIdentification", "ProcedureExecution"]}
 
-{"Areas": ["Numbersense"], "Scopes": ["NumbersSmaller10"], "Abilities": ["ConceptualUnderstanding"]}
+{"Areas": ["Arithmetic"], "Scopes": ["NumbersSmaller10"], "Abilities": ["ConceptualUnderstanding"]}
 
 {"Error": "UnsupportedMaterial"}

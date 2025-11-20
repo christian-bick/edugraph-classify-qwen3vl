@@ -1,100 +1,98 @@
 import json
 from typing import List, Dict, Any
-from datasets import load_dataset
+from datasets import load_dataset, Image
+import os
+from PIL import Image as PILImage # Alias to avoid conflict with datasets.Image
 
 # This prompt_text would ideally be loaded from a file or passed as an argument
 # For the purpose of this helper function, we'll assume it's available.
 # In a real scenario, you might pass it to the function or load it once.
-PROMPT_TEXT = """You are an expert at classifying learning materials using the EduGraph ontology. Your task is to analyze the provided image and generate a JSON classification.
 
-Follow these rules:
-1. First, determine if the image shows elementary-level math learning material. If not, output a JSON object with an "Error" key (e.g., {"Error": "NotMathMaterial"}).
-2. If it is valid, classify the material across the three dimensions: Area, Scope, and Ability, using only terms from the ontology.
-3. When classifying, remove any parent terms if a more specific child term from the same branch is also included.
-4. Your final output must be ONLY the JSON object.
+PROMPT_TEXT = """You are an expert at labeling learning materials using the EduGraph ontology. Your task is to analyze the provided
+image and provide a classification in JSON format.
 
-JSON Response for a valid classification:
-{"Areas": [...], "Scopes": [...], "Abilities": [...]}"""
+Follow these steps during the labeling process:
 
-def process_conversation_entry(entry: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """
-    Processes a single conversation entry from the dataset into a chat message format.
+1. Determine if the image represents math learning material that matches or is adjacent to elementary school math. If not then output '{"Error": "UnsupportedMaterial"}' and skip step 2.
+2. classify the material across the three ontology dimensions: "Area", "Scope", and "Ability"
+2.1 Be as specific as possible in your classification.
+2.2 Return your classification in a JSON schema
 
-    Args:
-        entry: A dictionary representing a single line from train_dataset.jsonl.
-               Expected structure:
-               {
-                   "id": str,
-                   "images": str,
-                   "conversations": [
-                       {"from": "human", "value": str},
-                       {"from": "gpt", "value": str}
-                   ]
-               }
+Here are 4 examples of valid JSON responses:
 
-    Returns:
-        A list of dictionaries representing the formatted chat messages.
-        Returns an empty list if the conversation entry is invalid.
-    """
-    conversations = entry.get('conversations')
+{"Areas": ["IntegerMultiplication"], "Scopes": ["NumbersSmaller10", "WithoutZero"], "Abilities": ["ProcedureExecution"]}
 
-    if not isinstance(conversations, list) or len(conversations) < 2:
-        return []
+{"Areas": ["FractionAddition", "IntegerMultiplication"], "Scopes": ["NumbersSmaller1000", "WithNegativeNumbers"], "Abilities": ["ProcedureIdentification", "ProcedureExecution"]}
 
-    # Extract content from both human and assistant turns
-    human_content = conversations[0].get('value')
-    assistant_content = conversations[1].get('value')
-    if not isinstance(human_content, str) or not isinstance(assistant_content, str):
-        return []
+{"Areas": ["Numbersense"], "Scopes": ["NumbersSmaller10"], "Abilities": ["ConceptualUnderstanding"]}
 
-    chat_messages = [
-        {"role": "system", "content": [{"type": "text", "text": PROMPT_TEXT}]},
-        {"role": "user", "content": [
-            {"type": "text", "text": human_content},
-            {"type": "image"}
-        ]},
-        {"role": "assistant", "content": [{"type": "text", "text": assistant_content}]}
-    ]
-    return chat_messages
+{"Error": "UnsupportedMaterial"}"""
+
+
+def custom_data_collator(batch, processor):
+    texts = []
+    images = []
+
+    for example in batch:
+        # We need to construct the chat from the 'messages' and 'image' columns
+        messages = example['messages']
+        pil_image = example['image'].convert("RGB")
+        images.append(pil_image)
+
+        # Apply chat template
+        # The PROMPT_TEXT is part of the messages already.
+        text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+        texts.append(text)
+
+    # Tokenize the texts and process the images
+    batch_data = processor(
+        text=texts,
+        images=images,
+        return_tensors="pt",
+        padding=True
+    )
+    
+    # The labels are the input_ids, we need to mask the prompt tokens
+    labels = batch_data["input_ids"].clone()
+    
+    # Mask padding tokens
+    labels[labels == processor.tokenizer.pad_token_id] = -100
+    batch_data["labels"] = labels
+    return batch_data
+
 
 def load_and_format_dataset(dataset_path: str, max_samples: int = None):
     """
-    Loads a JSONL dataset, formats it, and returns a processed dataset.
-
-    Args:
-        dataset_path: The path to the JSONL file.
-        max_samples: The maximum number of samples to use.
-
-    Returns:
-        A processed dataset.
+    Loads a JSONL dataset, formats it for SFTTrainer multimodal training,
+    and returns a processed dataset.
     """
+    # Load the dataset with the new flat JSONL structure
     dataset = load_dataset("json", data_files=dataset_path, split="train")
-    dataset = dataset.rename_column("image", "images")
-    # Transform the single image path string into a list containing that string
-    dataset = dataset.map(lambda example: {"images": [example["images"]]}, batched=False)
+
+    # Rename 'file_name' to 'image' and cast it to Image feature
+    dataset = dataset.rename_column("file_name", "image")
+    dataset = dataset.cast_column("image", Image())
 
     def format_chat_messages(examples):
         """
-        Creates a 'messages' column with the chat dictionary,
-        which SFTTrainer will use to apply the template.
-        The 'images' column is passed through automatically.
+        Creates a 'messages' column with the chat dictionary.
+        The 'image' column is automatically handled by the Image feature.
         """
         all_messages = []
-        for i in range(len(examples['id'])): # Iterate over each example in the batch
-            single_example_entry = {
-                "id": examples['id'][i],
-                "images": examples['images'][i],
-                "conversations": examples['conversations'][i]
-            }
-            processed_chat = process_conversation_entry(single_example_entry)
-            all_messages.append(processed_chat)
+        for i in range(len(examples['labels'])): # Iterate over each example in the batch
+            # Construct the conversational format using the static PROMPT_TEXT
+            messages = [
+                {"role": "user", "content": [{"type": "text", "text": PROMPT_TEXT}, {"type": "image"}]},
+                {"role": "assistant", "content": [{"type": "text", "text": examples["labels"][i]}]}
+            ]
+            all_messages.append(messages)
             
         return {"messages": all_messages}
 
-    # Get the columns to remove, but be sure to keep the 'images' column
-    columns_to_remove = [col for col in dataset.column_names if col != 'images']
+    # Remove the original 'labels' column after creating 'messages'
+    columns_to_remove = ["labels"]
     
-    # Apply the simple formatting
+    # Apply the formatting
     processed_dataset = dataset.map(format_chat_messages, batched=True, remove_columns=columns_to_remove)
 
     if max_samples:

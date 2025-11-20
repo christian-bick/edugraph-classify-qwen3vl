@@ -40,8 +40,19 @@ def find_and_process_metadata(root_dir, output_jsonl_file):
                     print(f"  Image not found: {image_path_relative_to_root}")
                     continue
 
-                # The 'labels' field is already a JSON object, so we just need to dump it to a string
-                label_str = json.dumps(entry['labels'])
+                # Process labels to remove URL part if they contain one
+                processed_labels = {}
+                for key, value_list in entry['labels'].items():
+                    if isinstance(value_list, list):
+                        processed_labels[key] = [
+                            label.split('#')[-1] if isinstance(label, str) and '#' in label else label
+                            for label in value_list
+                        ]
+                    else:
+                        # If for some reason it's not a list, keep it as is
+                        processed_labels[key] = value_list 
+
+                label_str = json.dumps(processed_labels)
 
                 master_dataset.append((image_path_relative_to_root, label_str))
 

@@ -10,8 +10,10 @@ from transformers import (
 )
 from peft import get_peft_model, PeftModel
 from trl import SFTConfig, SFTTrainer
+import functools
+
 from scripts.config import get_config
-from scripts.data_processing import load_and_format_dataset
+from scripts.data_processing import load_and_format_dataset, custom_data_collator
 
 
 def main():
@@ -115,7 +117,12 @@ def main():
         max_grad_norm=1.0,
         dataset_text_field="messages", # Tell SFTTrainer which column has the chat messages
         max_length=4096,
+        # New argument for multimodal training
+        dataset_kwargs={"skip_prepare_dataset": True},
     )
+
+    # Prepare the custom data collator
+    custom_collator_with_processor = functools.partial(custom_data_collator, processor=processor)
 
     # Use SFTTrainer for a simpler training loop
     trainer = SFTTrainer(
@@ -123,6 +130,7 @@ def main():
         processing_class=processor, # Pass the processor to handle multimodal inputs
         args=sft_config,
         train_dataset=processed_dataset,
+        data_collator=custom_collator_with_processor, # Pass the custom collator
     )
 
     print("Starting training with SFTTrainer...")
