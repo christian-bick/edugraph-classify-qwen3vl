@@ -119,6 +119,7 @@ def main():
         max_length=4096,
         # New argument for multimodal training
         dataset_kwargs={"skip_prepare_dataset": True},
+        remove_unused_columns=False,
     )
 
     # Prepare the custom data collator
