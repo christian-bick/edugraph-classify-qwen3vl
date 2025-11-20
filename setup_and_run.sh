@@ -9,10 +9,10 @@ export PYTHONPATH=.
 
 # --- GCS Bucket Configuration ---
 # These variables are passed from the `docker run` command.
-MODEL_SIZE=${MODEL_SIZE:-3b}
-GCS_BUCKET_NAME=${GCS_BUCKET_NAME:-imagine-ml}
-GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX:-edugraph-qwen-25vl}
-GCS_BUCKET="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/"
+MODEL_SIZE=${MODEL_SIZE}
+GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX}
+GCS_DESTINATION="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/${RUN_MODE}"
 
 # --- Test GCS Upload Permission ---
 echo "--- Testing GCS upload permission ---"
@@ -53,7 +53,7 @@ else
     mkdir -p out/adapters/knowledge_adapter
 
     gsutil -m cp -r \
-      "gs://imagine-ml/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/adapters/knowledge_adapter" \
+      "${GCS_DESTINATION}/latest/adapters/knowledge_adapter" \
       out/adapters/
 
 fi
@@ -65,4 +65,5 @@ echo "--- All training stages complete! ---"
 
 # --- Upload results to GCS ---
 echo "Uploading adapter models to GCS..."
-gsutil -m cp -r out/adapters $GCS_BUCKET
+gsutil -m cp -r out "${GCS_DESTINATION}/latest"
+gsutil -m cp -r out "${GCS_DESTINATION}/$(date +%y-%m-%d-%H-%M-%S)"

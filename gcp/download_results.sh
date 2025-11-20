@@ -8,6 +8,11 @@ fi
 
 mkdir -p out/adapters
 
+MODEL_SIZE=${MODEL_SIZE}
+GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX}
+GCS_DESTINATION="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/train"
+
 gsutil -m cp -r \
-  "gs://imagine-ml/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/adapters" \
+  "${GCS_DESTINATION}/latest" \
   out/
