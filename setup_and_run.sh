@@ -20,12 +20,12 @@ DUMMY_FILE="gcs_permission_test.txt"
 echo "This is a test file to check GCS write permissions." > $DUMMY_FILE
 
 # Try to upload the dummy file. The `|| exit 1` will cause the script to exit if gsutil fails.
-echo "Uploading test file to $GCS_BUCKET..."
-gsutil cp $DUMMY_FILE ${GCS_BUCKET}${DUMMY_FILE} || exit 1
+echo "Uploading test file to $GCS_DESTINATION..."
+gsutil cp $DUMMY_FILE ${$GCS_DESTINATION}${DUMMY_FILE} || exit 1
 
 # If upload was successful, remove the dummy file from the bucket and the local filesystem.
 echo "GCS permission test successful. Cleaning up test file..."
-gsutil rm ${GCS_BUCKET}${DUMMY_FILE}
+gsutil rm ${$GCS_DESTINATION}${DUMMY_FILE}
 rm $DUMMY_FILE
 
 echo "--- GCS permission test passed. Proceeding with main script. ---"
