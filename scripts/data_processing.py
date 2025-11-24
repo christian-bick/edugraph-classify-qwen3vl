@@ -1,4 +1,9 @@
+import os
+
 def custom_data_collator(batch, processor):
+
+    run_mode = os.environ.get("RUN_MODE", "train")
+
     texts = []
     images = []
 
@@ -21,7 +26,8 @@ def custom_data_collator(batch, processor):
         padding=True
     )
 
-    print(f"[Loading Image Data] {batch_data['pixel_values'].shape if 'pixel_values' in batch_data else 'Not Found'}")
+    if run_mode == "test":
+        print(f"[Loading Image Data] {batch_data['pixel_values'].shape if 'pixel_values' in batch_data else 'Not Found'}")
     
     # The labels are the input_ids, we need to mask the prompt tokens
     labels = batch_data["input_ids"].clone()
