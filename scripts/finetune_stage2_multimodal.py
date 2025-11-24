@@ -1,19 +1,42 @@
 import os
-import torch
-from dotenv import load_dotenv
+from functools import partial
 
+import torch
 from datasets import load_dataset
+from dotenv import load_dotenv
+from peft import get_peft_model, PeftModel
 from transformers import (
     AutoProcessor,
     BitsAndBytesConfig,
     Qwen3VLForConditionalGeneration,
 )
-from peft import get_peft_model, PeftModel
 from trl import SFTConfig, SFTTrainer
-import functools
 
 from scripts.config import get_config
-from scripts.data_processing import load_and_format_dataset, custom_data_collator
+from scripts.data_processing import custom_data_collator
+
+
+def prepare_dataset(example):
+    """Prepares a single example for the SFTTrainer."""
+    image = example["image"]
+    # The 'labels' field from metadata.jsonl is loaded as a string
+    labels_str = example["labels"]
+    
+    # Construct the chat messages
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image"},
+                {"type": "text", "text": "Based on the image, what are the corresponding ontology terms?"}
+            ]
+        },
+        {
+            "role": "assistant",
+            "content": labels_str
+        }
+    ]
+    return {"image": image, "messages": messages}
 
 
 def main():
@@ -28,7 +51,7 @@ def main():
     stage2_config = model_config.stage2
     base_model_id = f"Qwen/Qwen3-VL-{model_size.upper()}-Instruct"
     
-    multimodal_dataset_path = "train_dataset.jsonl"
+    dataset_path = "dataset" # Path to the ImageFolder
     knowledge_adapter_path = "out/adapters/knowledge_adapter"
     final_adapter_path = "out/adapters/multimodal_adapter"
     os.makedirs(os.path.dirname(final_adapter_path), exist_ok=True)
@@ -58,7 +81,7 @@ def main():
     # Load the base model in full precision for merging
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         base_model_id,
-        torch_dtype=torch.bfloat16, # Use bfloat16 for memory efficiency
+        torch_dtype=torch.bfloat16,
         device_map="auto",
         trust_remote_code=True
     )
@@ -76,7 +99,6 @@ def main():
         processor.save_pretrained(merged_model_path)
         print("Merged model saved successfully.")
         
-        # Now, reload the merged model with quantization for training
         print("Reloading merged model with 4-bit quantization...")
         model = Qwen3VLForConditionalGeneration.from_pretrained(
             merged_model_path,
@@ -88,7 +110,6 @@ def main():
         
     else:
         print(f"Knowledge adapter not found at {knowledge_adapter_path}, proceeding with base model.")
-        # If no adapter, we still need to quantize the base model for consistency
         model = Qwen3VLForConditionalGeneration.from_pretrained(
             base_model_id,
             quantization_config=bnb_config,
@@ -100,8 +121,16 @@ def main():
     print("Trainable parameters for Stage 2:")
     model.print_trainable_parameters()
 
-    # --- Data Loading and Simplified Formatting ---
-    processed_dataset = load_and_format_dataset(multimodal_dataset_path, max_train_samples)
+    # --- Data Loading and Formatting ---
+    print(f"Loading dataset from {dataset_path}...")
+    raw_dataset = load_dataset("imagefolder", data_dir=dataset_path, split="train")
+    
+    if max_train_samples:
+        raw_dataset = raw_dataset.select(range(max_train_samples))
+
+    # Apply the chat template
+    processed_dataset = raw_dataset.map(prepare_dataset, remove_columns=raw_dataset.column_names)
+    print("Dataset prepared successfully.")
 
     # --- Trainer Setup and Execution ---
     sft_config = SFTConfig(
@@ -112,26 +141,22 @@ def main():
         learning_rate=stage2_config.learning_rate,
         logging_steps=10,
         save_strategy="epoch",
-        # Evaluation is removed as per the improvement suggestions
         bf16=True, 
         max_grad_norm=1.0,
-        dataset_text_field="messages", # Tell SFTTrainer which column has the chat messages
-        max_length=4096,
-        # New argument for multimodal training
-        dataset_kwargs={"skip_prepare_dataset": True},
+        dataset_text_field="messages",
+        max_seq_length=4096,
         remove_unused_columns=False,
     )
 
     # Prepare the custom data collator
-    custom_collator_with_processor = functools.partial(custom_data_collator, processor=processor)
+    custom_collator_with_processor = partial(custom_data_collator, processor=processor)
 
     # Use SFTTrainer for a simpler training loop
     trainer = SFTTrainer(
         model=model,
-        processing_class=processor, # Pass the processor to handle multimodal inputs
         args=sft_config,
         train_dataset=processed_dataset,
-        data_collator=custom_collator_with_processor, # Pass the custom collator
+        data_collator=custom_collator_with_processor,
     )
 
     print("Starting training with SFTTrainer...")
@@ -140,6 +165,7 @@ def main():
 
     print(f"Saving final adapter to {final_adapter_path}")
     model.save_pretrained(final_adapter_path)
+
 
 if __name__ == "__main__":
     main()

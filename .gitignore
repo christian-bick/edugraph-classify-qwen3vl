@@ -22,6 +22,7 @@ __pycache__
 
 #Data
 /data
+/dataset
 /out
 
 *.log

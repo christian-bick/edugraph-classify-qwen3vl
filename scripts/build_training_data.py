@@ -1,10 +1,9 @@
-
 import os
 import json
 import glob
-from create_dataset import create_training_jsonl
+import shutil
 
-def find_and_process_metadata(root_dir, output_jsonl_file):
+def find_and_process_metadata(input_dir, output_dir):
     """
     Finds all 'meta.json' files in a directory, processes them, 
     and creates a consolidated training JSONL file.
@@ -12,7 +11,7 @@ def find_and_process_metadata(root_dir, output_jsonl_file):
     master_dataset = []
 
     # Find all meta.json files recursively
-    for meta_path in glob.glob(os.path.join(root_dir, '**', 'meta.json'), recursive=True):
+    for meta_path in glob.glob(os.path.join(input_dir, '**', 'meta.json'), recursive=True):
         print(f"Processing: {meta_path}")
         meta_dir = os.path.dirname(meta_path)
         
@@ -62,14 +61,54 @@ def find_and_process_metadata(root_dir, output_jsonl_file):
 
     # Use the imported function to create the final JSONL file
     print(f"\nFound {len(master_dataset)} total training examples.")
-    print(f"Creating '{output_jsonl_file}'...")
-    create_training_jsonl(master_dataset, output_jsonl_file)
+    print(f"Creating dataset in folder '{output_dir}'...")
+    create_dataset(master_dataset, output_dir)
     print("Done.")
+
+
+def create_dataset(raw_data, output_dir):
+    """
+    Converts a list of (image_path, json_label_string) tuples to a
+    Hugging Face `ImageFolder` dataset structure.
+
+    This involves creating a directory with images and a `metadata.jsonl` file.
+
+    Args:
+        raw_data (list): A list of tuples, where each tuple contains the
+                         source path of the image and its corresponding
+                         JSON string label.
+        output_dir (str): The path to the directory where the ImageFolder
+                          dataset will be created.
+    """
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    metadata_path = os.path.join(output_dir, "metadata.jsonl")
+
+    with open(metadata_path, 'w') as f:
+        for source_image_path, label_str in raw_data:
+            if not os.path.exists(source_image_path):
+                print(f"Warning: Source image not found at {source_image_path}. Skipping.")
+                continue
+
+            # Copy the image to the output directory
+            image_filename = os.path.basename(source_image_path)
+            dest_image_path = os.path.join(output_dir, image_filename)
+            shutil.copy(source_image_path, dest_image_path)
+
+            # Create the metadata entry
+            data_entry = {
+                "file_name": image_filename,
+                "labels": label_str
+            }
+            f.write(json.dumps(data_entry) + '\n')
+
+    print(f"ImageFolder dataset created at '{output_dir}' with metadata.")
 
 if __name__ == '__main__':
     # Define the root directory for the data and the output file name
     # The data is synced from S3 directly into the 'data' directory.
-    data_root = 'data'
-    output_file = 'train_dataset.jsonl'
+    input_directory = 'data'
+    output_directory = 'dataset'
     
-    find_and_process_metadata(data_root, output_file)
+    find_and_process_metadata(input_directory, output_directory)
