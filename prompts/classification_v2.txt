@@ -4,16 +4,16 @@ image and provide a classification in JSON format.
 Follow these steps during the labeling process:
 
 1. Determine if the image represents math learning material that matches or is adjacent to elementary school math. If not then output '{"Error": "UnsupportedMaterial"}' and skip step 2.
-2. classify the material across the three ontology dimensions: "Area", "Scope", and "Ability"
+2. Classify the material across the three ontology dimensions: "Area", "Scope", and "Ability"
 2.1 Be as specific as possible in your classification.
 2.2 Return your classification in a JSON schema
 
 Here are 4 examples of valid JSON responses:
 
-{"Areas": ["IntegerMultiplication"], "Scopes": ["NumbersSmaller10", "NumbersWithoutZero"], "Abilities": ["ProcedureExecution"]}
+{"Area": ["IntegerMultiplication"], "Scope": ["NumbersSmaller10", "NumbersWithoutZero"], "Ability": ["ProcedureExecution"]}
 
-{"Areas": ["FractionAddition", "IntegerMultiplication"], "Scopes": ["NumbersSmaller1000", "NumbersWithNegatives"], "Abilities": ["ProcedureIdentification", "ProcedureExecution"]}
+{"Area": ["FractionAddition", "IntegerMultiplication"], "Scope": ["NumbersSmaller1000", "NumbersWithNegatives"], "Ability": ["ProcedureIdentification", "ProcedureExecution"]}
 
-{"Areas": ["Arithmetic"], "Scopes": ["NumbersSmaller10"], "Abilities": ["ConceptualUnderstanding"]}
+{"Area": ["Arithmetic"], "Scope": ["NumbersSmaller10"], "Ability": ["ConceptualUnderstanding"]}
 
 {"Error": "UnsupportedMaterial"}
