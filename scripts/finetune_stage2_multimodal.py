@@ -15,6 +15,9 @@ from trl import SFTConfig, SFTTrainer
 from scripts.config import get_config
 from scripts.data_processing import custom_data_collator
 
+prompt_file_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'classification_v2.txt')
+with open(prompt_file_path, 'r', encoding='utf-8') as f:
+    PROMPT_TEXT = f.read()
 
 def prepare_dataset(example):
     """Prepares a single example for the SFTTrainer."""
@@ -28,7 +31,7 @@ def prepare_dataset(example):
             "role": "user",
             "content": [
                 {"type": "image"},
-                {"type": "text", "text": "Based on the image, what are the corresponding ontology terms?"}
+                {"type": "text", "text": PROMPT_TEXT}
             ]
         },
         {
@@ -129,7 +132,7 @@ def main():
         raw_dataset = raw_dataset.select(range(max_train_samples))
 
     # Apply the chat template
-    processed_dataset = raw_dataset.map(prepare_dataset, remove_columns=raw_dataset.column_names)
+    processed_dataset = raw_dataset.map(prepare_dataset)
     print("Dataset prepared successfully.")
 
     # --- Trainer Setup and Execution ---
@@ -143,8 +146,7 @@ def main():
         save_strategy="epoch",
         bf16=True, 
         max_grad_norm=1.0,
-        dataset_text_field="messages",
-        max_seq_length=4096,
+        max_length=4096,
         remove_unused_columns=False,
     )
 
