@@ -131,6 +131,10 @@ def main():
     if max_train_samples:
         raw_dataset = raw_dataset.select(range(max_train_samples))
 
+    # Shuffle the dataset
+    seed = 42 # A common seed for reproducibility
+    raw_dataset = raw_dataset.shuffle(seed=seed)
+
     # Apply the chat template
     processed_dataset = raw_dataset.map(prepare_dataset)
     print("Dataset prepared successfully.")
