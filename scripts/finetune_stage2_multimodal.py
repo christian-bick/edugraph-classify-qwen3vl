@@ -121,7 +121,6 @@ def main():
         )
     
     model = get_peft_model(model, stage2_config.lora_config)
-    model = torch.compile(model)
     print("Trainable parameters for Stage 2:")
     model.print_trainable_parameters()
 
