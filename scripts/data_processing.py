@@ -7,11 +7,6 @@ def custom_data_collator(batch, processor):
         messages = example['messages']
         pil_image = example['image'].convert("RGB")
         
-        # Calculate half resolution and resize
-        width, height = pil_image.size
-        new_width, new_height = width // 2, height // 2
-        pil_image = pil_image.resize((new_width, new_height))
-        
         images.append(pil_image)
 
         # Apply chat template
