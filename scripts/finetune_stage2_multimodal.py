@@ -86,7 +86,8 @@ def main():
         base_model_id,
         torch_dtype=torch.bfloat16,
         device_map="auto",
-        trust_remote_code=True
+        trust_remote_code=True,
+        attn_implementation="flash_attention_2"
     )
 
     # --- Adapter Merging and Configuration ---
@@ -121,6 +122,7 @@ def main():
         )
     
     model = get_peft_model(model, stage2_config.lora_config)
+    model = torch.compile(model)
     print("Trainable parameters for Stage 2:")
     model.print_trainable_parameters()
 
