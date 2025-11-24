@@ -86,8 +86,7 @@ def main():
         base_model_id,
         torch_dtype=torch.bfloat16,
         device_map="auto",
-        trust_remote_code=True,
-        attn_implementation="flash_attention_2"
+        trust_remote_code=True
     )
 
     # --- Adapter Merging and Configuration ---
