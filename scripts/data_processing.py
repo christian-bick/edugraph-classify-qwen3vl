@@ -21,7 +21,7 @@ def custom_data_collator(batch, processor):
         padding=True
     )
 
-    print(f"[Verification] Batch size: {len(images)}, Pixel values shape: {batch_data['pixel_values'].shape if 'pixel_values' in batch_data else 'Not Found'}")
+    print(f"[Loading Image Data] {batch_data['pixel_values'].shape if 'pixel_values' in batch_data else 'Not Found'}")
     
     # The labels are the input_ids, we need to mask the prompt tokens
     labels = batch_data["input_ids"].clone()
