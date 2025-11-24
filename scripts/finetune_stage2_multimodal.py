@@ -36,7 +36,7 @@ def prepare_dataset(example):
         },
         {
             "role": "assistant",
-            "content": labels_str
+            "content": [{"type": "text", "text": labels_str}]
         }
     ]
     return {"image": image, "messages": messages}
