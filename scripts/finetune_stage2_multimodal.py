@@ -4,7 +4,7 @@ from functools import partial
 import torch
 from datasets import load_dataset
 from dotenv import load_dotenv
-from peft import get_peft_model, PeftModel
+from peft import get_peft_model, PeftModel, prepare_model_for_kbit_training
 from transformers import (
     AutoProcessor,
     BitsAndBytesConfig,
@@ -124,6 +124,7 @@ def main():
             trust_remote_code=True
         )
     
+    model = prepare_model_for_kbit_training(model)
     model = get_peft_model(model, stage2_config.lora_config)
     print("Trainable parameters for Stage 2:")
     model.print_trainable_parameters()
