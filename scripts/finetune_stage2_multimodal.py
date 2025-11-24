@@ -89,6 +89,10 @@ def main():
         trust_remote_code=True
     )
 
+    if run_mode == "test":
+        print("--- Model Details ---")
+        print(model)
+
     # --- Adapter Merging and Configuration ---
     merged_model_path = "out/merged_model"
     if os.path.exists(knowledge_adapter_path):
