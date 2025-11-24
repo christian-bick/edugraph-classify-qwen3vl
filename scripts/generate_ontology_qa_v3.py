@@ -21,9 +21,9 @@ def generate_full_qa(rdf_file_path, output_file_path):
     COMMENT = RDFS.comment
 
     concept_types = {
-        "Areas": EDU.Area,
-        "Scopes": EDU.Scope,
-        "Abilities": EDU.Ability
+        "Area": EDU.Area,
+        "Scope": EDU.Scope,
+        "Ability": EDU.Ability
     }
 
     qa_pairs = []
@@ -49,7 +49,7 @@ def generate_full_qa(rdf_file_path, output_file_path):
         if not instruction_text:
             continue
 
-        json_output = {"Areas": [], "Scopes": [], "Abilities": []}
+        json_output = {"Area": [], "Scope": [], "Ability": []}
         type_found = False
         for type_name, type_uri in concept_types.items():
             if (s, RDF.type, type_uri) in g:
@@ -78,7 +78,7 @@ def generate_full_qa(rdf_file_path, output_file_path):
         child_name = child.split('#')[-1]
         parent_name = parent.split('#')[-1]
         
-        json_output = {"Areas": [], "Scopes": [], "Abilities": []}
+        json_output = {"Area": [], "Scope": [], "Ability": []}
         type_found = False
         for type_name, type_uri in concept_types.items():
             if (parent, RDF.type, type_uri) in g:
@@ -97,7 +97,7 @@ def generate_full_qa(rdf_file_path, output_file_path):
         parent_name = parent.split('#')[-1]
         child_names = sorted([c.split('#')[-1] for c in children])
 
-        json_output = {"Areas": [], "Scopes": [], "Abilities": []}
+        json_output = {"Area": [], "Scope": [], "Ability": []}
         type_found = False
         for type_name, type_uri in concept_types.items():
             if (parent, RDF.type, type_uri) in g:
