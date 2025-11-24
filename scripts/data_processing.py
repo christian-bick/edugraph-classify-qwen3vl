@@ -1,32 +1,11 @@
-import json
-from typing import List, Dict, Any
-from datasets import load_dataset, Image
 import os
-from PIL import Image as PILImage # Alias to avoid conflict with datasets.Image
 
-# This prompt_text would ideally be loaded from a file or passed as an argument
-# For the purpose of this helper function, we'll assume it's available.
-# In a real scenario, you might pass it to the function or load it once.
+from datasets import load_dataset, Image
 
-PROMPT_TEXT = """You are an expert at labeling learning materials using the EduGraph ontology. Your task is to analyze the provided
-image and provide a classification in JSON format.
-
-Follow these steps during the labeling process:
-
-1. Determine if the image represents math learning material that matches or is adjacent to elementary school math. If not then output '{"Error": "UnsupportedMaterial"}' and skip step 2.
-2. classify the material across the three ontology dimensions: "Area", "Scope", and "Ability"
-2.1 Be as specific as possible in your classification.
-2.2 Return your classification in a JSON schema
-
-Here are 4 examples of valid JSON responses:
-
-{"Areas": ["IntegerMultiplication"], "Scopes": ["NumbersSmaller10", "WithoutZero"], "Abilities": ["ProcedureExecution"]}
-
-{"Areas": ["FractionAddition", "IntegerMultiplication"], "Scopes": ["NumbersSmaller1000", "WithNegativeNumbers"], "Abilities": ["ProcedureIdentification", "ProcedureExecution"]}
-
-{"Areas": ["Numbersense"], "Scopes": ["NumbersSmaller10"], "Abilities": ["ConceptualUnderstanding"]}
-
-{"Error": "UnsupportedMaterial"}"""
+# Load PROMPT_TEXT from file
+prompt_file_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'classification_v2.txt')
+with open(prompt_file_path, 'r', encoding='utf-8') as f:
+    PROMPT_TEXT = f.read()
 
 
 def custom_data_collator(batch, processor):
@@ -40,7 +19,6 @@ def custom_data_collator(batch, processor):
         images.append(pil_image)
 
         # Apply chat template
-        # The PROMPT_TEXT is part of the messages already.
         text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
         texts.append(text)
 
