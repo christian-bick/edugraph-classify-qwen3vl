@@ -84,7 +84,7 @@ def main():
     # Load the base model in full precision for merging
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         base_model_id,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         device_map="auto",
         trust_remote_code=True
     )
