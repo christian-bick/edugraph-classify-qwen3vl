@@ -82,19 +82,16 @@ def main():
         bnb_4bit_use_double_quant=True
     )
 
-    # Load the base model in full precision for merging
-    model = Qwen3VLForConditionalGeneration.from_pretrained(
-        base_model_id,
-        dtype=torch.bfloat16,
-        device_map="auto",
-        trust_remote_code=True
-    )
-
-    if run_mode == "test":
-        print("--- Model Details ---")
-        print(model)
-
     if use_ki == "true" and os.path.exists(knowledge_adapter_path):
+
+        # Load the base model in full precision for merging
+        print(f"Loading base mode at full precision before merging")
+        model = Qwen3VLForConditionalGeneration.from_pretrained(
+            base_model_id,
+            dtype=torch.bfloat16,
+            device_map="auto",
+            trust_remote_code=True
+        )
 
         print(f"Loading and merging knowledge adapter from {knowledge_adapter_path}...")
         model = PeftModel.from_pretrained(model, knowledge_adapter_path)
@@ -130,6 +127,10 @@ def main():
             device_map="auto",
             trust_remote_code=True
         )
+
+    if run_mode == "test":
+        print("--- Model Details ---")
+        print(model)
     
     model = prepare_model_for_kbit_training(model)
     model = get_peft_model(model, stage2_config.lora_config)
