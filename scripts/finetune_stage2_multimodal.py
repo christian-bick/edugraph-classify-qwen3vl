@@ -48,6 +48,7 @@ def main():
 
     # --- Configuration ---
     run_mode = os.environ.get("RUN_MODE", "train")
+    use_ki = os.environ.get("RUN_MODE", "use_ki")
     model_size = os.environ.get("MODEL_SIZE", "4b")
     
     model_config = get_config(model_size)
@@ -95,7 +96,7 @@ def main():
 
     # --- Adapter Merging and Configuration ---
     merged_model_path = "out/merged_model"
-    if os.path.exists(knowledge_adapter_path):
+    if use_ki == "true" and os.path.exists(knowledge_adapter_path):
         print(f"Loading and merging knowledge adapter from {knowledge_adapter_path}...")
         model = PeftModel.from_pretrained(model, knowledge_adapter_path)
         model = model.merge_and_unload()
