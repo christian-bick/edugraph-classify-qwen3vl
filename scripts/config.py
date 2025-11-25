@@ -51,7 +51,7 @@ config_4b = ModelConfig(
         r=64,
         lora_alpha=128,
         lora_dropout=0.1,
-        learning_rate=1e-4,
+        learning_rate=2e-4,
         num_train_epochs=3
     )
 )
@@ -62,14 +62,14 @@ config_8b = ModelConfig(
         r=16,
         lora_alpha=32,
         lora_dropout=0.1,
-        learning_rate=1e-4,
+        learning_rate=2e-4,
         num_train_epochs=4
     ),
     stage2=Stage2Config(
         r=64,
         lora_alpha=128,
         lora_dropout=0.1,
-        learning_rate=1e-4,
+        learning_rate=2e-4,
         num_train_epochs=4
     )
 )
