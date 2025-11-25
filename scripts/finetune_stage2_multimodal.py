@@ -96,6 +96,7 @@ def main():
 
     # --- Adapter Merging and Configuration ---
     merged_model_path = "out/merged_model"
+
     if use_ki == "true" and os.path.exists(knowledge_adapter_path):
         print(f"Loading and merging knowledge adapter from {knowledge_adapter_path}...")
         model = PeftModel.from_pretrained(model, knowledge_adapter_path)
