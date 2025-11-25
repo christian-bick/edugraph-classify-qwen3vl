@@ -2,7 +2,8 @@ from peft import LoraConfig
 
 # A comprehensive set of target modules for modern Qwen models.
 # This targets all linear layers in the attention and feed-forward blocks.
-COMMON_TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj", "qkv", "linear_fc1", "linear_fc2"]
+KI_TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj", "qkv"]
+MULTIMODAL_TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj", "qkv", "linear_fc1", "linear_fc2"]
 
 class Stage1Config:
     def __init__(self, r, lora_alpha, lora_dropout, learning_rate, num_train_epochs):
@@ -11,7 +12,7 @@ class Stage1Config:
             lora_alpha=lora_alpha,
             lora_dropout=lora_dropout,
             bias="none",
-            target_modules=COMMON_TARGET_MODULES,
+            target_modules=KI_TARGET_MODULES,
             task_type="CAUSAL_LM"
         )
         self.learning_rate = learning_rate
@@ -24,7 +25,7 @@ class Stage2Config:
             lora_alpha=lora_alpha,
             lora_dropout=lora_dropout,
             bias="none",
-            target_modules=COMMON_TARGET_MODULES,
+            target_modules=MULTIMODAL_TARGET_MODULES,
             task_type="CAUSAL_LM"
         )
         self.learning_rate = learning_rate
