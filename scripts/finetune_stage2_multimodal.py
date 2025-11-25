@@ -117,7 +117,12 @@ def main():
         print("Merged model reloaded with quantization successfully.")
         
     else:
-        print(f"Knowledge adapter not found at {knowledge_adapter_path}, proceeding with base model.")
+        if use_ki == "true":
+            print(f"Knowledge adapter not found at {knowledge_adapter_path}")
+            exit(1)
+
+        print(f"Knowledge adapter not used, proceeding with base model.")
+
         model = Qwen3VLForConditionalGeneration.from_pretrained(
             base_model_id,
             quantization_config=bnb_config,
