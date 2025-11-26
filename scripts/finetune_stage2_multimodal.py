@@ -48,7 +48,7 @@ def main():
 
     # --- Configuration ---
     run_mode = os.environ.get("RUN_MODE", "train")
-    use_ki = os.environ.get("RUN_MODE", "use_ki")
+    use_ki = os.environ.get("RUN_MODE", "true")
     model_size = os.environ.get("MODEL_SIZE", "4b")
     
     model_config = get_config(model_size)
