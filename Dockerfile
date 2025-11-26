@@ -24,6 +24,8 @@ COPY pyproject.toml uv.lock .
 
 RUN uv sync
 
+RUN uv pip install https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.4.11/flash_attn-2.8.3+cu128torch2.8-cp312-cp312-linux_x86_64.whl
+
 # --- Model Cache Layer ---
 # Define build-time argument for model size
 ARG MODEL_SIZE=4b
