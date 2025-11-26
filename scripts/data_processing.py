@@ -11,12 +11,14 @@ class DataCollatorForMultimodalSupervisedDataset:
     processor: Any
 
     def __call__(self, instances: List[Dict]) -> Dict[str, torch.Tensor]:
-        # Extract texts, images, and messages from the batch
-        texts = [instance['messages'] for instance in instances]
+        # Extract images and messages from the batch
+        messages_batch = [instance['messages'] for instance in instances]
         images = [instance['image'].convert("RGB") for instance in instances]
 
+        # Manually apply the chat template to create a list of strings
+        texts = [self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=False) for msg in messages_batch]
+
         # Process the batch using the processor
-        # This tokenizes the text and processes the images
         batch_data = self.processor(
             text=texts,
             images=images,
