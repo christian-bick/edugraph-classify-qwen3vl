@@ -1,5 +1,5 @@
 # Use an official NVIDIA CUDA base image - this version is compatible with our torch build
-FROM nvidia/cuda:12.9.1-cudnn-devel-ubuntu24.04
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
 COPY --from=ghcr.io/astral-sh/uv:0.9.9 /uv /uvx /bin/
 
 ENV DEBIAN_FRONTEND=noninteractive
