@@ -90,7 +90,8 @@ def main():
             base_model_id,
             dtype=torch.bfloat16,
             device_map="auto",
-            trust_remote_code=True
+            trust_remote_code=True,
+            attn_implementation="flash_attention_2"
         )
 
         print(f"Loading and merging knowledge adapter from {knowledge_adapter_path}...")
@@ -110,7 +111,8 @@ def main():
             merged_model_path,
             quantization_config=bnb_config,
             device_map="auto",
-            trust_remote_code=True
+            trust_remote_code=True,
+            attn_implementation="flash_attention_2"
         )
         print("Merged model reloaded with quantization successfully.")
         
@@ -125,7 +127,8 @@ def main():
             base_model_id,
             quantization_config=bnb_config,
             device_map="auto",
-            trust_remote_code=True
+            trust_remote_code=True,
+            attn_implementation="flash_attention_2"
         )
 
     if run_mode == "test":

@@ -61,7 +61,8 @@ def main():
         base_model_id,
         quantization_config=bnb_config,
         device_map="auto",
-        trust_remote_code=True
+        trust_remote_code=True,
+        attn_implementation="flash_attention_2"
     )
     
     # Configure LoRA using the centralized config
