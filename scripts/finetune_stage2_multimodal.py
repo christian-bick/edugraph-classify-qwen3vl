@@ -13,7 +13,7 @@ from transformers import (
 from trl import SFTConfig, SFTTrainer
 
 from scripts.config import get_config
-from scripts.data_processing import custom_data_collator
+from scripts.data_processing import DataCollatorForMultimodalSupervisedDataset
 
 prompt_file_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'classification_v2.txt')
 with open(prompt_file_path, 'r', encoding='utf-8') as f:
@@ -169,15 +169,15 @@ def main():
         gradient_checkpointing_kwargs={"use_reentrant": False},
     )
 
-    # Prepare the custom data collator
-    custom_collator_with_processor = partial(custom_data_collator, processor=processor)
+    # Instantiate the new data collator
+    data_collator = DataCollatorForMultimodalSupervisedDataset(processor=processor)
 
     # Use SFTTrainer for a simpler training loop
     trainer = SFTTrainer(
         model=model,
         args=sft_config,
         train_dataset=processed_dataset,
-        data_collator=custom_collator_with_processor,
+        data_collator=data_collator,
     )
 
     print("Starting training with SFTTrainer...")
