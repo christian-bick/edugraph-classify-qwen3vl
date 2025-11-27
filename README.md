@@ -51,3 +51,52 @@ python scripts/classify_image.py path/to/your/image.png
 
 The script will load the fine-tuned model, process the image along with a predefined prompt, and
 print the predicted classification from the EduGraph ontology.
+
+## Fine-tuning
+
+The fine-tuning process is designed to be run within a Docker container, ensuring a consistent
+and reproducible environment locally and across different cloud providers.
+
+Please install Docker for your operating system if you haven't already:
+
+- [Install Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
+- [Install Docker Engine for Linux (Ubuntu)](https://docs.docker.com/engine/install/ubuntu/)
+
+### Quick Start for GCP
+
+The training process on Google Cloud Platform is managed by three main scripts that you can also use
+as a guideline for training in other environments.
+
+**Setup: `.env` file**
+
+Before running the scripts, you must create a `.env` file in the project root by copying the
+`.env.example` file. Fill in the required values for your GCP project, such as `PROJECT_ID`,
+`VM_ZONE`, `GCS_BUCKET_NAME`, etc.
+
+**Step 1: Build and Push Docker Image**
+
+This script builds the Docker image containing the training environment and all necessary code,
+and then pushes it to the Google Artifact Registry.
+
+```bash
+bash gcp/build_and_push.sh
+```
+
+**Step 2: Create VM and Start Training**
+
+This script creates a new spot VM instance on GCP with a single GPU, and starts the training
+process using the Docker image from Step 1. The VM's startup script will automatically pull the
+image and run the training.
+
+```bash
+bash gcp/run_on_vm.sh
+```
+
+**Step 3: Download Results**
+
+After the training is complete, the resulting fine-tuned adapter is saved to a GCS bucket.
+This script downloads the adapter from the bucket into the `out/` directory.
+
+```bash
+bash gcp/download_results.sh
+```
