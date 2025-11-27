@@ -1,10 +1,10 @@
 # EduGraph Qwen3-VL Classifier
 
-This project provides a classifier that labels learning material using entities from the 
+The EduGraph Qwen3-VL Classifier labels learning material using competence concepts from the 
 [EduGraph](https://github.com/christian-bick/edugraph-ontology) ontology. 
 
 The classification is performed by a fine-tuned Qwen3-VL model, which is capable of
-processing images to understand and categorize content and trained to label content along
+processing images to understand and categorize content. It is trained to label content along
 the three competence dimensions of EduGraph: Area, Scope and Ability.
 
 ## Setup
