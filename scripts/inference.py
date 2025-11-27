@@ -1,13 +1,19 @@
 import os
 import torch
 import argparse
-import json
+import base64
+import mimetypes
 
 from transformers import (
     AutoProcessor,
     Qwen3VLForConditionalGeneration,
 )
 from peft import PeftModel
+
+def image_to_base64(image_path):
+    """Converts an image file to a base64 encoded string."""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
 
 def main(args):
     # --- Configuration ---
@@ -41,8 +47,14 @@ def main(args):
     with open("prompts/classification_v2.txt", "r") as f:
         prompt_text = f.read()
 
-    # Create the message list, making sure to format the local image path correctly
-    image_uri = f"file://{os.path.abspath(args.image_path)}"
+    # Convert the image to a base64 data URI
+    base64_image = image_to_base64(args.image_path)
+    mime_type, _ = mimetypes.guess_type(args.image_path)
+    if mime_type is None:
+        mime_type = "image/jpeg"  # Fallback
+    image_uri = f"data:{mime_type};base64,{base64_image}"
+    
+    # Create the message list
     messages = [
         {
             "role": "user",
