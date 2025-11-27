@@ -107,7 +107,8 @@ For local development, you will need an NVIDIA GPU and the NVIDIA Container Tool
 Docker to access the GPU.
 
 **Prerequisites:**
-1.  Create a `.env` file from `.env.example`. For a local run, you don't need to provide cloud related variables.
+1.  Create a `.env` file from `.env.example`. For a local run, you only need to set `MODEL_SIZE`
+    (e.g., `4b`) and `RUN_MODE` (e.g., `train` or `test`).
 2.  Ensure your training data is located in the `dataset/` directory.
 
 **Step 1: Build the Docker Image**
@@ -135,3 +136,32 @@ docker run --gpus all --rm \
   qwen-trainer \
   bash setup_and_run.local.sh
 ```
+
+## Training Data
+
+This project utilizes two main types of data for training the Qwen3-VL classifier:
+
+### 1. Knowledge Infusion (KI) Dataset
+
+This dataset is generated from the EduGraph ontology, which defines the domain-specific concepts
+and their relationships.
+
+-   **Source:** `ontology/core-ontology-0.4.0.rdf`
+-   **Generation Script:** `scripts/generate_dataset_ki.py`
+-   **Content:** The script parses the RDF ontology to create a comprehensive Q&A dataset. This
+    includes pairs asking for definitions of concepts, parent-child relationships, and children
+    of specific concepts within the ontology. This helps infuse the model with structured domain
+    knowledge.
+
+### 2. Multimodal Training Dataset (Worksheets)
+
+This dataset consists of images (worksheets) and associated metadata that provide labels based on
+the EduGraph ontology.
+
+-   **Source:** The content for these worksheets is sourced from the
+    [imagine-content](https://github.com/christian-bick/imagine-content) GitHub repository.
+-   **Generation Script:** `scripts/generate_dataset_multimodal.py`
+-   **Content:** The script scans the downloaded content for `meta.json` files. Each `meta.json`
+    file describes a worksheet image (PNG) and provides its corresponding labels across various
+    EduGraph ontology dimensions (Area, Scope, Ability). This dataset is used for multimodal
+    fine-tuning, enabling the model to directly classify images.
