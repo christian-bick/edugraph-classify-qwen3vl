@@ -1,14 +1,15 @@
-import os
 import torch
 import argparse
 import base64
 import mimetypes
 
+import torch
+from peft import PeftModel
 from transformers import (
     AutoProcessor,
     Qwen3VLForConditionalGeneration,
 )
-from peft import PeftModel
+
 
 def image_to_base64(image_path):
     """Converts an image file to a base64 encoded string."""

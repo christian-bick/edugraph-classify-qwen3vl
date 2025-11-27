@@ -1,9 +1,11 @@
 
 import json
-from rdflib import Graph, URIRef, RDFS, OWL, Namespace
-from rdflib.namespace import RDF
 import os
 from collections import defaultdict
+
+from rdflib import Graph, URIRef, RDFS, Namespace
+from rdflib.namespace import RDF
+
 
 def generate_full_qa(rdf_file_path, output_file_path):
     """Parses an RDF ontology file to generate a comprehensive Q&A dataset

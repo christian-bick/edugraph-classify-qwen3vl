@@ -1,7 +1,8 @@
-import os
-import json
 import glob
+import json
+import os
 import shutil
+
 
 def find_and_process_metadata(input_dir, output_dir):
     """

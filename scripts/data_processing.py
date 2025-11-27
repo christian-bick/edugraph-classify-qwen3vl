@@ -1,6 +1,8 @@
-import torch
 from dataclasses import dataclass
 from typing import List, Dict, Any
+
+import torch
+
 
 def find_subsequence(haystack, needle):
     """Finds the starting index of a subsequence (needle) in a list (haystack)."""
