@@ -100,3 +100,38 @@ This script downloads the adapter from the bucket into the `out/` directory.
 ```bash
 bash gcp/download_results.sh
 ```
+
+### Local Development and Training
+
+For local development, you will need an NVIDIA GPU and the NVIDIA Container Toolkit to allow
+Docker to access the GPU.
+
+**Prerequisites:**
+1.  Create a `.env` file from `.env.example`. For a local run, you don't need to provide cloud related variables.
+2.  Ensure your training data is located in the `dataset/` directory.
+
+**Step 1: Build the Docker Image**
+
+Build the Docker image using the `Dockerfile` in the project root. This command uses the
+`MODEL_SIZE` argument from your `.env` file.
+
+```bash
+export $(grep -v '^#' .env | xargs)
+docker build --build-arg MODEL_SIZE=$MODEL_SIZE -t qwen-trainer .
+```
+
+**Step 2: Run the Training Container**
+
+This command overrides the default container command to run the `setup_and_run.local.sh`
+script, which is simplified for local training.
+- The `--env-file .env` flag passes your local configuration into the container.
+- The `-v $(pwd)/out:/app/out` command mounts your local `out/` directory to save the trained
+  model adapters to your machine.
+
+```bash
+docker run --gpus all --rm \
+  --env-file .env \
+  -v $(pwd)/out:/app/out \
+  qwen-trainer \
+  bash setup_and_run.local.sh
+```
