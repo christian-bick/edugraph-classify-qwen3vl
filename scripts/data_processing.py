@@ -11,7 +11,7 @@ def find_subsequence(haystack, needle):
     return -1
 
 @dataclass
-class DataCollatorForMultimodalSupervisedDatasetV3:
+class DataCollatorForMultimodalSupervisedDataset:
     """
     A robust data collator for multimodal supervised fine-tuning.
     1. Uses a single processor call to ensure all tensors (input_ids, pixel_values, image_grid_thw) are generated correctly.
@@ -64,32 +64,3 @@ class DataCollatorForMultimodalSupervisedDatasetV3:
         
         data['labels'] = labels
         return data
-
-# --- Keep previous versions for reference ---
-
-@dataclass
-class DataCollatorForMultimodalSupervisedDataset:
-    processor: Any
-
-    def __call__(self, instances: List[Dict]) -> Dict[str, torch.Tensor]:
-        messages_batch = [instance['messages'] for instance in instances]
-        images = [instance['image'].convert("RGB") for instance in instances]
-        texts = [self.processor.apply_chat_template(msg, tokenize=False, add_generation_prompt=False) for msg in messages_batch]
-
-        batch_data = self.processor(
-            text=texts,
-            images=images,
-            return_tensors="pt",
-            padding=True
-        )
-        labels = batch_data["input_ids"].clone()
-        pad_token_id = self.processor.tokenizer.pad_token_id
-        labels[batch_data["input_ids"] == pad_token_id] = -100
-        for i in range(len(instances)):
-            messages = instances[i]['messages']
-            user_prompt = [messages[0]]
-            prompt_only_text = self.processor.apply_chat_template(user_prompt, tokenize=False, add_generation_prompt=False)
-            prompt_len = len(self.processor.tokenizer(prompt_only_text, return_tensors="pt")["input_ids"][0])
-            labels[i, :prompt_len] = -100
-        batch_data["labels"] = labels
-        return batch_data

@@ -13,7 +13,7 @@ from transformers import (
 from trl import SFTConfig, SFTTrainer
 
 from scripts.config import get_config
-from scripts.data_processing import DataCollatorForMultimodalSupervisedDatasetV3
+from scripts.data_processing import DataCollatorForMultimodalSupervisedDataset
 
 prompt_file_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'classification_v2.txt')
 with open(prompt_file_path, 'r', encoding='utf-8') as f:
@@ -173,7 +173,7 @@ def main():
     )
 
     # Instantiate the new data collator
-    data_collator = DataCollatorForMultimodalSupervisedDatasetV3(processor=processor)
+    data_collator = DataCollatorForMultimodalSupervisedDataset(processor=processor)
 
     # Use SFTTrainer for a simpler training loop
     trainer = SFTTrainer(
