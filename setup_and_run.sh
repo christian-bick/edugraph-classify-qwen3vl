@@ -36,29 +36,33 @@ mkdir -p data
 uv run aws s3 sync s3://imagine-content ./data/ --no-sign-request --no-progress > /dev/null
 
 # 2. Build the training dataset from the synced data
-echo "--- Building training dataset from synced data ---"
-uv run python scripts/build_training_data.py
+echo "--- Generate training dataset for multimodal training ---"
+uv run python scripts/generate_dataset_multimodal.py
 
 # 3. Run the training stages in order
 if [ "$SKIP_KI" != "true" ]; then
-    echo "--- Generating ontology QA dataset for Stage 1 ---"
-    uv run python scripts/generate_ontology_qa_v3.py
+    echo "--- Generate training dataset for knowledge infusion  ---"
+    uv run python scripts/generate_dataset_ki.py
 
-    echo "--- Initiating Stage 1: Knowledge Infusion ---"
-    uv run python scripts/finetune_stage1_knowledge.py
+    echo "--- Initiating Stage 1 (Knowledge Infusion) ---"
+    uv run python scripts/finetune_stage1_ki.py
     echo "--- Stage 1 complete. ---"
 else
-    echo "--- Skipping Stage 1 (Knowledge Infusion) and downloading last adapter instead  ---"
+    echo "--- Skipping Stage 1 (Knowledge Infusion) ---"
 
-    mkdir -p out/adapters/knowledge_adapter
+    if [ "$USE_KI" == "true" ]; then
+        echo "--- Downloading latest knowledge adapter ---"
 
-    gsutil -m cp -r \
-      "${GCS_DESTINATION}/latest/adapters/knowledge_adapter" \
-      out/adapters/
+        mkdir -p out/adapters/knowledge_adapter
+
+        gsutil -m cp -r \
+          "${GCS_DESTINATION}/latest/adapters/knowledge_adapter" \
+          out/adapters/
+    fi
 
 fi
 
-echo "--- Initiating Stage 2: Multimodal Training ---"
+echo "--- Initiating Stage 2 (Multimodal Training) ---"
 uv run python scripts/finetune_stage2_multimodal.py
 
 echo "--- All training stages complete! ---"
