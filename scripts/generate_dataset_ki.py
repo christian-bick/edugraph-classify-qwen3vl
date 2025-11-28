@@ -167,20 +167,20 @@ def publish_dataset(dataset_path, repo_id):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate and optionally publish the Knowledge Infusion dataset.")
-    parser.add_argument("--version", type=str, default="0.4.0", help="The ontology version to use.")
+    parser.add_argument("--version", type=str, help="The ontology version to use.")
     parser.add_argument("--no-cache", action="store_true", help="Force re-downloading of the ontology file.")
     parser.add_argument("--publish", action="store_true", help="Publish the dataset to Hugging Face Hub.")
     args = parser.parse_args()
 
     # Define paths
-    cache_directory = "temp/ontology"
+    cache_directory = "temp/input_ki"
     output_path = "out/datasets/knowledge/ontology_qa.jsonl"
     
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # Download ontology
-    rdf_path = download_ontology(args.ontology_version, cache_directory, args.no_cache)
+    rdf_path = download_ontology(args.version, cache_directory, args.no_cache)
     
     if not rdf_path:
         return # Exit if download failed

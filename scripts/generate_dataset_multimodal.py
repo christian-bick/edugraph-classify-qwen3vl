@@ -198,7 +198,7 @@ def main():
     input_directory = "temp/input_multimodal"
     output_directory = "out/datasets/multimodal"
 
-    if args.sync_s3 or not os.path.exists(input_directory):
+    if args.no_cache or not os.path.exists(input_directory):
         sync_s3(args.s3_bucket, input_directory)
 
     find_and_process_metadata(input_directory, output_directory)
