@@ -41,13 +41,21 @@ def download_ontology(version, cache_dir, no_cache=False):
         return None
 
 
-def generate_full_qa(rdf_file_path, output_file_path):
+def generate_full_qa(rdf_file_path, output_dir):
     """Parses an RDF ontology file to generate a comprehensive Q&A dataset
     including definition-to-label and hierarchy questions.
     """
     if not os.path.exists(rdf_file_path):
         print(f"Error: RDF file not found at {rdf_file_path}")
-        return
+        exit(1)
+
+    if os.path.exists(output_dir):
+        print(f"Clearing output directory")
+        shutil.rmtree(output_dir)
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    output_file_path =  os.path.join(output_dir, "ontology_qa.jsonl")
 
     g = Graph()
     g.parse(rdf_file_path)
@@ -155,19 +163,18 @@ def generate_full_qa(rdf_file_path, output_file_path):
     print(f"Generated {len(qa_pairs)} comprehensive Q&A pairs in '{output_file_path}'.")
 
 
-def publish_dataset(dataset_path, repo_id):
+def publish_dataset(dataset_dir, repo_id):
     """Publishes the dataset to Hugging Face Hub."""
     print(f"\n--- Uploading Knowledge Infusion Dataset to {repo_id} ---")
     try:
         # Create dataset from local JSONL file
-        ki_dataset = load_dataset('json', data_files={'train': dataset_path})
+        ki_dataset = load_dataset('json', data_dir=dataset_dir)
         # Push to Hub
         print(f"Pushing to {repo_id}")
-        ki_dataset.push_to_hub(repo_id, split='train')
-        print("Knowledge Infusion Dataset uploaded successfully.")
-        os.remove(dataset_path)  # Clean up local file
+        ki_dataset.push_to_hub(repo_id)
     except Exception as e:
         print(f"Failed to upload KI dataset: {e}")
+        exit(1)
 
 
 def main():
@@ -179,10 +186,10 @@ def main():
 
     # Define paths
     cache_directory = "temp/input_ki"
-    output_path = "out/datasets/knowledge/ontology_qa.jsonl"
+    output_dir = "out/datasets/knowledge/"
     
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    os.makedirs(os.path.dirname(output_dir), exist_ok=True)
 
     # Download ontology
     rdf_path = download_ontology(args.version, cache_directory, args.no_cache)
@@ -190,11 +197,11 @@ def main():
     if not rdf_path:
         return # Exit if download failed
 
-    generate_full_qa(rdf_path, output_path)
+    generate_full_qa(rdf_path, output_dir)
 
     if args.publish:
         repo_id = "christian-bick/edugraph-knowledge"
-        publish_dataset(output_path, repo_id)
+        publish_dataset(output_dir, repo_id)
 
 
 if __name__ == '__main__':

@@ -156,9 +156,10 @@ def create_dataset(raw_data, output_dir):
         output_dir (str): The path to the directory where the ImageFolder
                           dataset will be created.
     """
-    # Create the output directory if it doesn't exist
     if os.path.exists(output_dir):
+        print(f"Clearing output directory")
         shutil.rmtree(output_dir)
+
     os.makedirs(output_dir, exist_ok=True)
 
     metadata_path = os.path.join(output_dir, "metadata.jsonl")
