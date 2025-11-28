@@ -64,7 +64,8 @@ TIMESTAMP_DEST="${GCS_DESTINATION}/${TIMESTAMP}"
 
 # 1. Upload the results to a unique, timestamped directory
 echo "Uploading results to timestamped directory: ${TIMESTAMP_DEST}"
-gsutil -m cp -r "out/adapters/" "${TIMESTAMP_DEST}"
+gsutil -m cp -r "out/adapters/multimodal" "${TIMESTAMP_DEST}/adapter"
+gsutil -m cp -r "out/models/multimodal" "${TIMESTAMP_DEST}/model"
 
 # --- Update the 'latest' pointer ---
 LATEST_DEST="${GCS_DESTINATION}/latest"
