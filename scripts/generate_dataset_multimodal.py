@@ -4,6 +4,8 @@ import os
 import shutil
 import argparse
 import boto3
+import botocore
+from botocore.client import Config
 from botocore.exceptions import NoCredentialsError
 
 from datasets import load_dataset
@@ -17,7 +19,7 @@ def sync_s3(bucket_name, local_dir):
     """
     print(f"--- Syncing data from S3 bucket: s3://{bucket_name} to {local_dir} ---")
     try:
-        s3 = boto3.client('s3')
+        s3 = boto3.client('s3', config=Config(signature_version=botocore.UNSIGNED))
 
         # Ensure local directory exists
         os.makedirs(local_dir, exist_ok=True)
