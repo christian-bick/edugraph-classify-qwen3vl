@@ -57,5 +57,24 @@ echo "--- All training stages complete! ---"
 
 # --- Upload results to GCS ---
 echo "Uploading adapter models to GCS..."
-gsutil -m cp -r "out/adapters/" "${GCS_DESTINATION}/latest"
-gsutil -m cp -r "out/adapters/" "${GCS_DESTINATION}/$(date +%y-%m-%d-%H-%M-%S)"
+
+# Define a destination for the new timestamped results
+TIMESTAMP=$(date +%y-%m-%d-%H-%M-%S)
+TIMESTAMP_DEST="${GCS_DESTINATION}/${TIMESTAMP}"
+
+# 1. Upload the results to a unique, timestamped directory
+echo "Uploading results to timestamped directory: ${TIMESTAMP_DEST}"
+gsutil -m cp -r "out/adapters/" "${TIMESTAMP_DEST}"
+
+# --- Update the 'latest' pointer ---
+LATEST_DEST="${GCS_DESTINATION}/latest"
+
+# 2. Remove the old 'latest' directory. The `|| true` part
+#    prevents the script from exiting if the directory doesn't exist.
+echo "Removing old 'latest' directory..."
+(gsutil -m rm -r "${LATEST_DEST}" || true)
+
+# 3. Perform a fast, server-side copy from the new timestamped directory
+#    to create the new 'latest' directory.
+echo "Updating 'latest' to point to new results by copying from ${TIMESTAMP_DEST}"
+gsutil -m cp -r "${TIMESTAMP_DEST}" "${LATEST_DEST}"
