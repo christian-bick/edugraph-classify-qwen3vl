@@ -41,11 +41,11 @@ else
     if [ "$USE_KI" == "true" ]; then
         echo "--- Downloading latest knowledge adapter ---"
 
-        mkdir -p out/adapters/knowledge_adapter
+        mkdir -p out/adapters/knowledge
 
         gsutil -m cp -r \
-          "${GCS_DESTINATION}/latest/adapters/knowledge_adapter" \
-          out/adapters/
+          "${GCS_DESTINATION}/latest/adapters/knowledge" \
+          "out/adapters/"
     fi
 
 fi
@@ -57,5 +57,5 @@ echo "--- All training stages complete! ---"
 
 # --- Upload results to GCS ---
 echo "Uploading adapter models to GCS..."
-gsutil -m cp -r out "${GCS_DESTINATION}/latest"
-gsutil -m cp -r out "${GCS_DESTINATION}/$(date +%y-%m-%d-%H-%M-%S)"
+gsutil -m cp -r "out/adapters/" "${GCS_DESTINATION}/latest"
+gsutil -m cp -r "out/adapters/" "${GCS_DESTINATION}/$(date +%y-%m-%d-%H-%M-%S)"

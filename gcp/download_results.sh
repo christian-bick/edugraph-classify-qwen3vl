@@ -6,13 +6,13 @@ else
     exit 1
 fi
 
-mkdir -p out/adapters
+mkdir -p "out/${MODEL_SIZE}"
 
 MODEL_SIZE=${MODEL_SIZE}
 GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
 GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX}
-GCS_DESTINATION="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/train"
+GCS_DESTINATION="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/${RUN_MODE}/latest/adapters/multimodal"
 
 gsutil -m cp -r \
-  "${GCS_DESTINATION}/latest" \
-  out/
+  "${GCS_DESTINATION}" \
+  "out/adapters/qwen-3vl-${MODEL_SIZE}/${RUN_MODE}"

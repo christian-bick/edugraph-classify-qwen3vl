@@ -31,7 +31,7 @@ def main():
     # Update to Qwen3-VL model
     base_model_id = f"Qwen/Qwen3-VL-{model_size.upper()}-Instruct"
 
-    knowledge_adapter_path = "out/adapters/knowledge_adapter"
+    knowledge_adapter_path = "out/adapters/knowledge"
     os.makedirs("out/adapters", exist_ok=True)
 
     # --- Mode-specific Adjustments ---

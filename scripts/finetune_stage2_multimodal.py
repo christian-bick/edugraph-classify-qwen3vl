@@ -55,8 +55,8 @@ def main():
     base_model_id = f"Qwen/Qwen3-VL-{model_size.upper()}-Instruct"
     
     dataset_path = "dataset" # Path to the ImageFolder
-    knowledge_adapter_path = "out/adapters/knowledge_adapter"
-    final_adapter_path = "out/adapters/multimodal_adapter"
+    knowledge_adapter_path = "out/adapters/knowledge"
+    final_adapter_path = "out/adapters/multimodal"
     os.makedirs(os.path.dirname(final_adapter_path), exist_ok=True)
 
     # --- Mode-specific Adjustments ---
