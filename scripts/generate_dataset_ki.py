@@ -1,12 +1,39 @@
-
 import json
 import os
 from collections import defaultdict
 import argparse
+import requests
 
 from datasets import load_dataset
 from rdflib import Graph, URIRef, RDFS, Namespace
 from rdflib.namespace import RDF
+
+
+def download_ontology(version, cache_dir, no_cache=False):
+    """
+    Downloads the ontology file for a specific version, with caching.
+    """
+    url = f"https://github.com/christian-bick/edugraph-ontology/releases/download/v{version}/core-ontology.rdf"
+    file_name = f"core-ontology-{version}.rdf"
+    local_path = os.path.join(cache_dir, file_name)
+
+    os.makedirs(cache_dir, exist_ok=True)
+
+    if not no_cache and os.path.exists(local_path):
+        print(f"Using cached ontology file: {local_path}")
+        return local_path
+
+    print(f"Downloading ontology version {version} from {url}...")
+    try:
+        response = requests.get(url, allow_redirects=True)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Successfully downloaded and cached ontology to {local_path}")
+        return local_path
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading ontology file: {e}")
+        return None
 
 
 def generate_full_qa(rdf_file_path, output_file_path):
@@ -140,11 +167,24 @@ def publish_dataset(dataset_path, repo_id):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate and optionally publish the Knowledge Infusion dataset.")
+    parser.add_argument("--version", type=str, default="0.4.0", help="The ontology version to use.")
+    parser.add_argument("--no-cache", action="store_true", help="Force re-downloading of the ontology file.")
     parser.add_argument("--publish", action="store_true", help="Publish the dataset to Hugging Face Hub.")
     args = parser.parse_args()
 
-    rdf_path = os.path.join('ontology', 'core-ontology-0.4.0.rdf')
+    # Define paths
+    cache_directory = "temp/ontology"
     output_path = "out/datasets/knowledge/ontology_qa.jsonl"
+    
+    # Ensure output directory exists
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    # Download ontology
+    rdf_path = download_ontology(args.ontology_version, cache_directory, args.no_cache)
+    
+    if not rdf_path:
+        return # Exit if download failed
+
     generate_full_qa(rdf_path, output_path)
 
     if args.publish:
