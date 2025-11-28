@@ -3,6 +3,7 @@ import os
 from collections import defaultdict
 import argparse
 import requests
+import shutil
 
 from datasets import load_dataset
 from rdflib import Graph, URIRef, RDFS, Namespace
@@ -16,6 +17,10 @@ def download_ontology(version, cache_dir, no_cache=False):
     url = f"https://github.com/christian-bick/edugraph-ontology/releases/download/v{version}/core-ontology.rdf"
     file_name = f"core-ontology-{version}.rdf"
     local_path = os.path.join(cache_dir, file_name)
+
+    if no_cache and os.path.exists(cache_dir):
+        print(f"Clearing cache directory: {cache_dir}")
+        shutil.rmtree(cache_dir)
 
     os.makedirs(cache_dir, exist_ok=True)
 
