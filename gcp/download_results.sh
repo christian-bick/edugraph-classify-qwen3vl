@@ -22,13 +22,13 @@ LOCAL_DESTINATION="out/models/qwen-3vl-${MODEL_SIZE}/${RUN_MODE}"
 echo "--- Preparing to download multimodal adapter ---"
 
 # Ensure a clean destination directory
-echo "Re-creating destination directory: $LOCAL_DESTINATION"
-rm -rf "$LOCAL_DESTINATION"
-mkdir -p "$LOCAL_DESTINATION"
+echo "Re-creating destination directory: ${LOCAL_DESTINATION}"
+rm -rf $LOCAL_DESTINATION
+mkdir -p $LOCAL_DESTINATION
 
-echo "Downloading model from ${GCS_SOURCE_DIR} to ${$LOCAL_DESTINATION}"
+echo "Downloading model from ${GCS_SOURCE_DIR} to ${LOCAL_DESTINATION}"
 gsutil -m cp -r \
   "${GCS_SOURCE_DIR}/*" \
-  "${LOCAL_DESTINATION}"
+  $LOCAL_DESTINATION
 
 echo "--- Download complete. ---"
