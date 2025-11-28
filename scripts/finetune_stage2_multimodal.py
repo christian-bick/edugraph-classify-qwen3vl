@@ -53,11 +53,14 @@ def main():
     model_config = get_config(model_size)
     stage2_config = model_config.stage2
     base_model_id = f"Qwen/Qwen3-VL-{model_size.upper()}-Instruct"
-    
-    dataset_path = "dataset" # Path to the ImageFolder
+
     knowledge_adapter_path = "out/adapters/knowledge"
-    final_adapter_path = "out/adapters/multimodal"
-    os.makedirs(os.path.dirname(final_adapter_path), exist_ok=True)
+    knowledge_model_path = "out/models/knowledge"
+
+    multimodal_adapter_path = "out/adapters/multimodal"
+    multimodal_model_path = "out/models/multimodal"
+
+    os.makedirs(os.path.dirname(multimodal_adapter_path), exist_ok=True)
 
     # --- Mode-specific Adjustments ---
     if run_mode == "test":
@@ -99,15 +102,14 @@ def main():
         print("Knowledge adapter loaded and merged successfully.")
 
         # --- Adapter Merging and Configuration ---
-        merged_model_path = "out/merged_model"
-        print(f"Saving merged model to {merged_model_path}...")
-        model.save_pretrained(merged_model_path)
-        processor.save_pretrained(merged_model_path)
+        print(f"Saving merged model to {knowledge_model_path}...")
+        model.save_pretrained(knowledge_model_path)
+        processor.save_pretrained(knowledge_model_path)
         print("Merged model saved successfully.")
         
         print("Reloading merged model with 4-bit quantization...")
         model = Qwen3VLForConditionalGeneration.from_pretrained(
-            merged_model_path,
+            knowledge_model_path,
             quantization_config=bnb_config,
             device_map="auto",
             trust_remote_code=True,
@@ -140,7 +142,7 @@ def main():
     model.print_trainable_parameters()
 
     # --- Data Loading and Formatting ---
-    print(f"Loading dataset from {dataset_path}...")
+    print(f"Loading dataset")
     raw_dataset = load_dataset("christian-bick/edugraph-worksheets", split="train")
     
     if max_train_samples:
@@ -186,8 +188,36 @@ def main():
     trainer.train()
     print("Training finished.")
 
-    print(f"Saving final adapter to {final_adapter_path}")
-    model.save_pretrained(final_adapter_path)
+    print(f"Saving final adapter to {multimodal_adapter_path}")
+    model.save_pretrained(multimodal_adapter_path)
+
+    # --- Merge the final adapter and save the full model ---
+    print("\n--- Merging final multimodal adapter ---")
+
+    # Determine the base model to load for merging.
+    base_for_final_merge_path = knowledge_model_path if use_ki == "true" else base_model_id
+
+    print(f"Loading base model for final merge from: {base_for_final_merge_path}")
+    # Reload the base model in full precision to merge the adapter
+    base_model = Qwen3VLForConditionalGeneration.from_pretrained(
+        base_for_final_merge_path,
+        dtype=torch.bfloat16,
+        device_map="auto",
+        trust_remote_code=True,
+        attn_implementation="flash_attention_2"
+    )
+
+    print(f"Loading and merging final multimodal adapter from: {multimodal_adapter_path}")
+    final_merged_model = PeftModel.from_pretrained(base_model, multimodal_adapter_path)
+    final_merged_model = final_merged_model.merge_and_unload()
+    print("Final adapter merged successfully.")
+
+    # Save the final, fully merged model
+    print(f"Saving final merged model to: {multimodal_model_path}")
+    final_merged_model.save_pretrained(multimodal_model_path)
+    processor.save_pretrained(multimodal_model_path)
+    print("Final multimodal model saved successfully.")
+
 
 
 if __name__ == "__main__":
