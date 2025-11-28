@@ -1,3 +1,8 @@
+#!/bin/bash
+# This script downloads the latest multimodal adapter from GCS.
+
+set -e
+
 # --- Load Configuration from .env file ---
 if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
@@ -6,13 +11,25 @@ else
     exit 1
 fi
 
-mkdir -p "out/adapters/qwen-3vl-${MODEL_SIZE}/${RUN_MODE}"
+# --- Define Variables ---
+# GCS source directory for the multimodal adapter
+GCS_SOURCE_DIR="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/${RUN_MODE}/latest/multimodal"
 
-MODEL_SIZE=${MODEL_SIZE}
-GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
-GCS_BUCKET_FOLDER_PREFIX=${GCS_BUCKET_FOLDER_PREFIX}
-GCS_DESTINATION="gs://${GCS_BUCKET_NAME}/${GCS_BUCKET_FOLDER_PREFIX}-${MODEL_SIZE}/${RUN_MODE}/latest/multimodal"
+# Local destination directory
+LOCAL_DESTINATION="out/adapters/qwen-3vl-${MODEL_SIZE}/${RUN_MODE}"
 
+# --- Download Adapters ---
+echo "--- Preparing to download multimodal adapter ---"
+
+# Ensure a clean destination directory
+echo "Re-creating destination directory: $LOCAL_DESTINATION"
+rm -rf "$LOCAL_DESTINATION"
+mkdir -p "$LOCAL_DESTINATION"
+
+# Download the contents of the GCS directory
+echo "Downloading adapters from ${GCS_SOURCE_DIR} to ${LOCAL_DESTINATION}"
 gsutil -m cp -r \
-  "${GCS_DESTINATION}" \
-  "out/adapters/qwen-3vl-${MODEL_SIZE}/${RUN_MODE}"
+  "${GCS_SOURCE_DIR}/*" \
+  "${LOCAL_DESTINATION}"
+
+echo "--- Download complete. ---"
