@@ -11,18 +11,27 @@ from botocore.exceptions import NoCredentialsError
 from datasets import load_dataset
 
 
-def sync_s3(bucket_name, local_dir):
+def download_content(bucket_name, cache_dir, no_cache=False):
     """
-    Syncs a directory from an S3 bucket.
+    Syncs a directory from an S3 bucket, with caching.
     - Downloads new/modified files from S3.
     - Deletes local files that are not in S3.
     """
-    print(f"--- Syncing data from S3 bucket: s3://{bucket_name} to {local_dir} ---")
+    if os.path.exists(cache_dir):
+        if no_cache:
+            print(f"Clearing cache directory: {cache_dir}")
+            shutil.rmtree(cache_dir)
+        else:
+            return
+
+    # Ensure that the directory exists
+    os.makedirs(cache_dir, exist_ok=True)
+
+    print(f"--- Syncing data from S3 bucket: s3://{bucket_name} to {cache_dir} ---")
     try:
         s3 = boto3.client('s3', config=Config(signature_version=botocore.UNSIGNED))
 
-        # Ensure local directory exists
-        os.makedirs(local_dir, exist_ok=True)
+        # Ensure local directory exists (now potentially recreated after rmtree)
 
         # Part 1: Download/update files from S3
         paginator = s3.get_paginator('list_objects_v2')
@@ -35,7 +44,7 @@ def sync_s3(bucket_name, local_dir):
                 s3_key = obj['Key']
                 # S3 keys use '/', even on Windows
                 s3_files.add(s3_key)
-                local_file_path = os.path.join(local_dir, *s3_key.split('/'))
+                local_file_path = os.path.join(cache_dir, *s3_key.split('/'))
 
                 os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
 
@@ -52,11 +61,11 @@ def sync_s3(bucket_name, local_dir):
                     s3.download_file(bucket_name, s3_key, local_file_path)
 
         # Part 2: Delete local files that are not in S3
-        for root, _, files in os.walk(local_dir):
+        for root, _, files in os.walk(cache_dir):
             for name in files:
                 local_path = os.path.join(root, name)
                 # create a relative path with forward slashes to match S3 keys
-                relative_path = os.path.relpath(local_path, local_dir).replace(os.sep, '/')
+                relative_path = os.path.relpath(local_path, cache_dir).replace(os.sep, '/')
                 if relative_path not in s3_files:
                     print(f"Deleting local file not in S3: {local_path}")
                     os.remove(local_path)
@@ -200,8 +209,7 @@ def main():
     input_directory = "temp/input_multimodal"
     output_directory = "out/datasets/multimodal"
 
-    if args.no_cache or not os.path.exists(input_directory):
-        sync_s3(args.s3_bucket, input_directory)
+    download_content(args.s3_bucket, input_directory, args.no_cache)
 
     find_and_process_metadata(input_directory, output_directory)
 

@@ -18,15 +18,15 @@ def download_ontology(version, cache_dir, no_cache=False):
     file_name = f"core-ontology-{version}.rdf"
     local_path = os.path.join(cache_dir, file_name)
 
-    if no_cache and os.path.exists(cache_dir):
-        print(f"Clearing cache directory: {cache_dir}")
-        shutil.rmtree(cache_dir)
+    if os.path.exists(cache_dir):
+        if no_cache:
+            print(f"Clearing cache directory: {cache_dir}")
+            shutil.rmtree(cache_dir)
+        else:
+            return local_path
 
+    # Ensure that the directory exists
     os.makedirs(cache_dir, exist_ok=True)
-
-    if not no_cache and os.path.exists(local_path):
-        print(f"Using cached ontology file: {local_path}")
-        return local_path
 
     print(f"Downloading ontology version {version} from {url}...")
     try:
