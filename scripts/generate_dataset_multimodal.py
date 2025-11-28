@@ -193,7 +193,7 @@ def publish_dataset(dataset_dir, repo_id):
         multimodal_dataset = load_dataset("imagefolder", data_dir=dataset_dir)
         # Push to Hub
         print(f"Pushing to {repo_id}")
-        multimodal_dataset.push_to_hub(repo_id, split='train')
+        multimodal_dataset.push_to_hub(repo_id)
         print("Multimodal Dataset uploaded successfully.")
         shutil.rmtree(dataset_dir)  # Clean up local directory
     except Exception as e:
