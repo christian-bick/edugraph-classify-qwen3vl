@@ -194,10 +194,9 @@ def publish_dataset(dataset_dir, repo_id):
         # Push to Hub
         print(f"Pushing to {repo_id}")
         multimodal_dataset.push_to_hub(repo_id)
-        print("Multimodal Dataset uploaded successfully.")
-        shutil.rmtree(dataset_dir)  # Clean up local directory
     except Exception as e:
         print(f"Failed to upload Multimodal dataset: {e}")
+        exit(1)
 
 
 def main():
