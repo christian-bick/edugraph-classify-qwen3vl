@@ -52,7 +52,7 @@ def main():
     publish_dir = f"out/models/{model_name}/publish"
 
     # The base model for the LoRA is the one with the KI adapter already merged.
-    model_dir = "out/merged_model"
+    model_dir = f"out/models/{model_name}/{run_mode}/model"
 
     output_dir = f"out/adapters/qwen-3vl-{model_size}/publish"
     outfile_path = f"{output_dir}/{model_name}-{args.ftype.lower()}.gguf"
