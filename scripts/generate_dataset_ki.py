@@ -141,15 +141,14 @@ def publish_dataset(dataset_path, repo_id):
 def main():
     parser = argparse.ArgumentParser(description="Generate and optionally publish the Knowledge Infusion dataset.")
     parser.add_argument("--publish", action="store_true", help="Publish the dataset to Hugging Face Hub.")
-    parser.add_argument("--hf_username", type=str, default="christian-bick", help="Hugging Face username.")
     args = parser.parse_args()
 
     rdf_path = os.path.join('ontology', 'core-ontology-0.4.0.rdf')
-    output_path = 'ontology_qa.jsonl'
+    output_path = "out/datasets/knowledge/ontology_qa.jsonl"
     generate_full_qa(rdf_path, output_path)
 
     if args.publish:
-        repo_id = f"{args.hf_username}/edugraph-knowledge"
+        repo_id = "christian-bick/edugraph-knowledge"
         publish_dataset(output_path, repo_id)
 
 

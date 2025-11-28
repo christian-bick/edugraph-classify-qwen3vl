@@ -190,10 +190,9 @@ def publish_dataset(dataset_dir, repo_id):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate and optionally publish the multimodal dataset.")
-    parser.add_argument("--sync-s3", action="store_true", help="Sync data from S3 bucket before generating dataset.")
-    parser.add_argument("--s3-bucket", type=str, default="edugraph-pdf-data", help="S3 bucket name to sync from.")
+    parser.add_argument("--no-cache", action="store_true", help="Always sync data from S3 bucket before generating dataset.")
+    parser.add_argument("--s3-bucket", type=str, default="imagine-content", help="S3 bucket name to sync from.")
     parser.add_argument("--publish", action="store_true", help="Publish the dataset to Hugging Face Hub.")
-    parser.add_argument("--hf_username", type=str, default="christian-bick", help="Hugging Face username.")
     args = parser.parse_args()
 
     input_directory = "temp/input_multimodal"
@@ -205,7 +204,7 @@ def main():
     find_and_process_metadata(input_directory, output_directory)
 
     if args.publish:
-        repo_id = f"{args.hf_username}/edugraph-worksheets"
+        repo_id = "christian-bick/edugraph-worksheets"
         publish_dataset(output_directory, repo_id)
 
 
