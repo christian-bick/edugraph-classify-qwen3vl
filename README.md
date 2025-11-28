@@ -9,7 +9,7 @@ the three competence dimensions of EduGraph: Area, Scope and Ability.
 
 ## Setup
 
-This project requires Python 3.12.
+This project requires Python 3.12 or higher.
 
 We use `uv` for fast dependency and virtual environment management. Please see the official
 [uv documentation](https://astral.sh/uv) for installation instructions.
@@ -150,9 +150,10 @@ are loaded during the fine-tuning process.
 This dataset is generated from the EduGraph ontology, which defines the domain-specific concepts
 and their relationships.
 
--   **Raw Source:** `ontology/core-ontology-0.4.0.rdf`
--   **Generation Script:** `scripts/publish_datasets.py`
--   **Hugging Face Hub:** `christian-bick/edugraph-knowledge`
+-   **Generation Script:** `scripts/generate_dataset_ki.py`
+-   **Hugging Face Dataset:** `christian-bick/edugraph-knowledge`
+-   **Raw Source:** The content for the training worksheets is sourced from the releases of the
+    [edugraph-ontology](https://github.com/christian-bick/edugraph-ontology) GitHub repository.
 -   **Content:** The script parses the RDF ontology to create a comprehensive Q&A dataset. This
     includes pairs asking for definitions of concepts, parent-child relationships, and children
     of specific concepts within the ontology. This helps infuse the model with structured domain
@@ -163,10 +164,10 @@ and their relationships.
 This dataset consists of images (worksheets) and associated metadata that provide labels based on
 the EduGraph ontology.
 
--   **Raw Source:** The content for these worksheets is sourced from the
+-   **Generation Script:** `scripts/generate_dataset_multimodal.py`
+-   **Hugging Face Dataset:** `christian-bick/edugraph-worksheets`
+-   **Raw Source:** The content for the training worksheets is sourced from the
     [imagine-content](https://github.com/christian-bick/imagine-content) GitHub repository.
--   **Generation Script:** `scripts/publish_datasets.py`
--   **Hugging Face Hub:** `christian-bick/edugraph-worksheets`
 -   **Content:** The script scans the downloaded content for `meta.json` files. Each `meta.json`
     file describes a worksheet image (PNG) and provides its corresponding labels across various
     EduGraph ontology dimensions (Area, Scope, Ability). This dataset is used for multimodal
@@ -175,19 +176,23 @@ the EduGraph ontology.
 ### Publishing Datasets on Huggingface Hub
 
 **Prerequisites:**
-1.  **Clone Raw Data:** Ensure the `imagine-content` repository is cloned one directory above
-    this project: `cd .. && git clone https://github.com/christian-bick/imagine-content`.
-2.  **Hugging Face Login:** Authenticate with Hugging Face using `huggingface-cli login`.
+
+Hugging Face Login: Authenticate with Hugging Face using `huggingface-cli login`.
 
 **Steps to Generate and Upload Datasets:**
 
-Run the `scripts/publish_datasets.py` script from the project root. This script will:
-1.  Generate the Knowledge Infusion dataset from `ontology/core-ontology-0.4.0.rdf`.
-2.  Upload it to `christian-bick/edugraph-knowledge` on the Hugging Face Hub.
-3.  Generate the Multimodal Training dataset from the `imagine-content` repository.
-4.  Upload it to `christian-bick/edugraph-worksheets` on the Hugging Face Hub.
+1. Run the above scripts from the project root.
+2. Use the `--no-cache` option to force downloading raw source data
+3. Use the `--publish` option for publishing the datasets on Huggingface
 
+**Examples**
+
+Knowledge infusion dataset for release 0.4.0:
 ```bash
-python scripts/publish_datasets.py
+uv run scripts/generate_dataset_ki.py --version 0.4.0 --publish
 ```
 
+Multimodal dataset with fresh data:
+```bash
+uv run scripts/generate_dataset_multimodal.py --no-cache --publish
+```
