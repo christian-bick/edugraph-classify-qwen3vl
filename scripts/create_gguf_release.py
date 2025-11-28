@@ -48,11 +48,11 @@ def main():
 
     # --- 1. Define Paths ---
     model_name = f"qwen-3vl-{model_size}"
-    source_adapter_dir = f"out/adapters/{model_name}/{run_mode}"
-    publish_adapter_dir = f"out/adapters/{model_name}/publish"
+    source_adapter_dir = f"out/models/{model_name}/{run_mode}/adapter"
+    publish_dir = f"out/models/{model_name}/publish"
 
     # The base model for the LoRA is the one with the KI adapter already merged.
-    base_model_dir = "out/merged_model"
+    model_dir = "out/merged_model"
 
     output_dir = f"out/adapters/qwen-3vl-{model_size}/publish"
     outfile_path = f"{output_dir}/{model_name}-{args.ftype.lower()}.gguf"
@@ -63,8 +63,8 @@ def main():
     if not os.path.isdir(source_adapter_dir):
         print(f"Error: Source adapter directory not found at: {source_adapter_dir}")
         sys.exit(1)
-    if not os.path.isdir(base_model_dir):
-        print(f"Error: Base model directory not found at: {base_model_dir}")
+    if not os.path.isdir(model_dir):
+        print(f"Error: Model directory not found at: {model_dir}")
         print("This directory should be created by 'finetune_stage2_multimodal.py' when using a KI adapter.")
         sys.exit(1)
     if not os.path.isfile(convert_script_path):
@@ -75,26 +75,26 @@ def main():
 
     # --- 3. Create clean 'publish' directory ---
     print(f"--- Preparing 'publish' directory for {model_name} ---")
-    if os.path.exists(publish_adapter_dir):
-        print(f"Removing existing publish directory: {publish_adapter_dir}")
-        shutil.rmtree(publish_adapter_dir)
+    if os.path.exists(publish_dir):
+        print(f"Removing existing publish directory: {publish_dir}")
+        shutil.rmtree(publish_dir)
 
-    print(f"Copying adapter from {source_adapter_dir} to {publish_adapter_dir}")
-    shutil.copytree(source_adapter_dir, publish_adapter_dir)
+    print(f"Copying adapter from {source_adapter_dir} to {publish_dir}")
+    shutil.copytree(source_adapter_dir, publish_dir)
     print("'publish' directory created successfully.")
 
     # --- 4. Generate GGUF using subprocess ---
     print(f"\n--- Generating GGUF file ---")
-    print(f"Base model: {base_model_dir}")
-    print(f"LoRA adapter: {publish_adapter_dir}")
+    print(f"Base model: {model_dir}")
+    print(f"LoRA adapter: {publish_dir}")
     print(f"Output file: {outfile_path}")
 
     command = [
         sys.executable,  # Use the same python interpreter that runs this script
         convert_script_path,
-        base_model_dir,
+        model_dir,
         "--lora",
-        publish_adapter_dir,
+        publish_dir,
         "--outtype",
         args.ftype,
         "--outfile",
