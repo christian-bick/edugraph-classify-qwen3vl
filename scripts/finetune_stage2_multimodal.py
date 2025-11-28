@@ -141,7 +141,7 @@ def main():
 
     # --- Data Loading and Formatting ---
     print(f"Loading dataset from {dataset_path}...")
-    raw_dataset = load_dataset("imagefolder", data_dir=dataset_path, split="train")
+    raw_dataset = load_dataset("christian-bick/edugraph-worksheets", split="train")
     
     if max_train_samples:
         raw_dataset = raw_dataset.select(range(max_train_samples))

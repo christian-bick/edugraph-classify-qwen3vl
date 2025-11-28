@@ -73,7 +73,7 @@ def main():
     model.print_trainable_parameters()
 
     # Load and process the dataset
-    dataset = load_dataset("json", data_files=text_dataset_path, split="train")
+    dataset = load_dataset("christian-bick/edugraph-knowledge", split="train")
     if max_train_samples:
         dataset = dataset.select(range(max_train_samples))
 

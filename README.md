@@ -55,7 +55,8 @@ print the predicted classification from the EduGraph ontology.
 ## Fine-tuning
 
 The fine-tuning process is designed to be run within a Docker container, ensuring a consistent
-and reproducible environment locally and across different cloud providers.
+and reproducible environment locally and across different cloud providers. The training data
+is loaded directly from the Hugging Face Hub.
 
 Please install Docker for your operating system if you haven't already:
 
@@ -86,7 +87,7 @@ bash gcp/build_and_push.sh
 
 This script creates a new spot VM instance on GCP with a single GPU, and starts the training
 process using the Docker image from Step 1. The VM's startup script will automatically pull the
-image and run the training.
+image and run the training. The training data will be loaded from the Hugging Face Hub.
 
 ```bash
 bash gcp/run_on_vm.sh
@@ -107,9 +108,9 @@ For local development, you will need an NVIDIA GPU and the NVIDIA Container Tool
 Docker to access the GPU.
 
 **Prerequisites:**
-1.  Create a `.env` file from `.env.example`. For a local run, you only need to set `MODEL_SIZE`
-    (e.g., `4b`) and `RUN_MODE` (e.g., `train` or `test`).
-2.  Ensure your training data is located in the `dataset/` directory.
+
+Create a `.env` file from `.env.example`. For a local run, you only need to set `MODEL_SIZE`
+(e.g., `4b`) and `RUN_MODE` (e.g., `train` or `test`).
 
 **Step 1: Build the Docker Image**
 
@@ -124,7 +125,8 @@ docker build --build-arg MODEL_SIZE=$MODEL_SIZE -t qwen-trainer .
 **Step 2: Run the Training Container**
 
 This command overrides the default container command to run the `setup_and_run.local.sh`
-script, which is simplified for local training.
+script, which is simplified for local training. The training data will be loaded directly
+from the Hugging Face Hub.
 - The `--env-file .env` flag passes your local configuration into the container.
 - The `-v $(pwd)/out:/app/out` command mounts your local `out/` directory to save the trained
   model adapters to your machine.
@@ -137,17 +139,20 @@ docker run --gpus all --rm \
   bash setup_and_run.local.sh
 ```
 
-## Training Data
+## Data Sources
 
-This project utilizes two main types of data for training the Qwen3-VL classifier:
+This project utilizes two main types of data for training the Qwen3-VL classifier. These datasets
+are generated from their raw sources and then uploaded to the Hugging Face Hub, from where they
+are loaded during the fine-tuning process.
 
 ### 1. Knowledge Infusion (KI) Dataset
 
 This dataset is generated from the EduGraph ontology, which defines the domain-specific concepts
 and their relationships.
 
--   **Source:** `ontology/core-ontology-0.4.0.rdf`
--   **Generation Script:** `scripts/generate_dataset_ki.py`
+-   **Raw Source:** `ontology/core-ontology-0.4.0.rdf`
+-   **Generation Script:** `scripts/publish_datasets.py`
+-   **Hugging Face Hub:** `christian-bick/edugraph-knowledge`
 -   **Content:** The script parses the RDF ontology to create a comprehensive Q&A dataset. This
     includes pairs asking for definitions of concepts, parent-child relationships, and children
     of specific concepts within the ontology. This helps infuse the model with structured domain
@@ -158,10 +163,31 @@ and their relationships.
 This dataset consists of images (worksheets) and associated metadata that provide labels based on
 the EduGraph ontology.
 
--   **Source:** The content for these worksheets is sourced from the
+-   **Raw Source:** The content for these worksheets is sourced from the
     [imagine-content](https://github.com/christian-bick/imagine-content) GitHub repository.
--   **Generation Script:** `scripts/generate_dataset_multimodal.py`
+-   **Generation Script:** `scripts/publish_datasets.py`
+-   **Hugging Face Hub:** `christian-bick/edugraph-worksheets`
 -   **Content:** The script scans the downloaded content for `meta.json` files. Each `meta.json`
     file describes a worksheet image (PNG) and provides its corresponding labels across various
     EduGraph ontology dimensions (Area, Scope, Ability). This dataset is used for multimodal
     fine-tuning, enabling the model to directly classify images.
+
+### Publishing Datasets on Huggingface Hub
+
+**Prerequisites:**
+1.  **Clone Raw Data:** Ensure the `imagine-content` repository is cloned one directory above
+    this project: `cd .. && git clone https://github.com/christian-bick/imagine-content`.
+2.  **Hugging Face Login:** Authenticate with Hugging Face using `huggingface-cli login`.
+
+**Steps to Generate and Upload Datasets:**
+
+Run the `scripts/publish_datasets.py` script from the project root. This script will:
+1.  Generate the Knowledge Infusion dataset from `ontology/core-ontology-0.4.0.rdf`.
+2.  Upload it to `christian-bick/edugraph-knowledge` on the Hugging Face Hub.
+3.  Generate the Multimodal Training dataset from the `imagine-content` repository.
+4.  Upload it to `christian-bick/edugraph-worksheets` on the Hugging Face Hub.
+
+```bash
+python scripts/publish_datasets.py
+```
+

@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script is the main entrypoint inside the Docker container.
+# This script is the main entrypoint inside the Docker container for cloud training.
 
 # Set environment variable to prevent tokenizer parallelism issues
 export TOKENIZERS_PARALLELISM=false
@@ -30,20 +30,8 @@ rm $DUMMY_FILE
 
 echo "--- GCS permission test passed. Proceeding with main script. ---"
 
-# 1. Sync Data from S3
-echo "--- Syncing data from S3 bucket: s3://imagine-content ---"
-mkdir -p data
-uv run aws s3 sync s3://imagine-content ./data/ --no-sign-request --no-progress > /dev/null
-
-# 2. Build the training dataset from the synced data
-echo "--- Generate training dataset for multimodal training ---"
-uv run python scripts/generate_dataset_multimodal.py
-
-# 3. Run the training stages in order
+# --- Training stages ---
 if [ "$SKIP_KI" != "true" ]; then
-    echo "--- Generate training dataset for knowledge infusion  ---"
-    uv run python scripts/generate_dataset_ki.py
-
     echo "--- Initiating Stage 1 (Knowledge Infusion) ---"
     uv run python scripts/finetune_stage1_ki.py
     echo "--- Stage 1 complete. ---"
