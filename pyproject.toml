@@ -30,7 +30,7 @@ dependencies = [
     "python-dotenv~=1.2.1",
     "rdflib~=7.4.0",
     "huggingface-hub~=0.36.0",
-    "awscli~=1.42.45",
+    "boto3~=1.41.5",
 ]
 
 [dependency-groups]

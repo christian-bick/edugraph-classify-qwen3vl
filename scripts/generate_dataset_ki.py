@@ -2,7 +2,9 @@
 import json
 import os
 from collections import defaultdict
+import argparse
 
+from datasets import load_dataset
 from rdflib import Graph, URIRef, RDFS, Namespace
 from rdflib.namespace import RDF
 
@@ -120,7 +122,36 @@ def generate_full_qa(rdf_file_path, output_file_path):
             
     print(f"Generated {len(qa_pairs)} comprehensive Q&A pairs in '{output_file_path}'.")
 
-if __name__ == '__main__':
+
+def publish_dataset(dataset_path, repo_id):
+    """Publishes the dataset to Hugging Face Hub."""
+    print(f"\n--- Uploading Knowledge Infusion Dataset to {repo_id} ---")
+    try:
+        # Create dataset from local JSONL file
+        ki_dataset = load_dataset('json', data_files={'train': dataset_path})
+        # Push to Hub
+        print(f"Pushing to {repo_id}")
+        ki_dataset.push_to_hub(repo_id, split='train')
+        print("Knowledge Infusion Dataset uploaded successfully.")
+        os.remove(dataset_path)  # Clean up local file
+    except Exception as e:
+        print(f"Failed to upload KI dataset: {e}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate and optionally publish the Knowledge Infusion dataset.")
+    parser.add_argument("--publish", action="store_true", help="Publish the dataset to Hugging Face Hub.")
+    parser.add_argument("--hf_username", type=str, default="christian-bick", help="Hugging Face username.")
+    args = parser.parse_args()
+
     rdf_path = os.path.join('ontology', 'core-ontology-0.4.0.rdf')
-    output_path = 'ontology_qa_v3.jsonl'
+    output_path = 'ontology_qa.jsonl'
     generate_full_qa(rdf_path, output_path)
+
+    if args.publish:
+        repo_id = f"{args.hf_username}/edugraph-knowledge"
+        publish_dataset(output_path, repo_id)
+
+
+if __name__ == '__main__':
+    main()

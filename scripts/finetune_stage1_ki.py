@@ -30,8 +30,7 @@ def main():
     stage1_config = model_config.stage1
     # Update to Qwen3-VL model
     base_model_id = f"Qwen/Qwen3-VL-{model_size.upper()}-Instruct"
-    
-    text_dataset_path = "ontology_qa_v3.jsonl"
+
     knowledge_adapter_path = "out/adapters/knowledge_adapter"
     os.makedirs("out/adapters", exist_ok=True)
 
