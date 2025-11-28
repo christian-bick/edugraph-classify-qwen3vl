@@ -44,7 +44,7 @@ else
         mkdir -p out/adapters/knowledge
 
         gsutil -m cp -r \
-          "${GCS_DESTINATION}/latest/adapters/knowledge" \
+          "${GCS_DESTINATION}/latest/knowledge" \
           "out/adapters/"
     fi
 
