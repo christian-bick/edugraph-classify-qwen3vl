@@ -42,8 +42,7 @@ def main(args):
         model_path,
         torch_dtype=torch.bfloat16,
         device_map="auto",
-        trust_remote_code=True,
-        attn_implementation="flash_attention_2"
+        trust_remote_code=True
     )
     print("Merged model loaded successfully.")
 
