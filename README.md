@@ -1,6 +1,6 @@
 # EduGraph Qwen3-VL Classifier
 
-The EduGraph Qwen3-VL Classifier labels learning material using competence concepts from the 
+This model labels learning material with competence concepts from the 
 [EduGraph](https://github.com/christian-bick/edugraph-ontology) ontology. 
 
 The classification is performed by a fine-tuned Qwen3-VL model, which is capable of
@@ -9,7 +9,9 @@ the three competence dimensions of EduGraph: Area, Scope and Ability.
 
 ## Setup
 
-This project requires Python 3.12 or higher.
+The training itself is performed in a Docker container for full reproducibility and easy setup.
+However, it is still recommended to also set up the Python environment locally for proper IDE 
+support and for running some optional Python scripts locally.
 
 We use `uv` for fast dependency and virtual environment management. Please see the official
 [uv documentation](https://astral.sh/uv) for installation instructions.
@@ -27,7 +29,7 @@ and provide the path to the image file as an argument.
 **Example Usage:**
 
 ```bash
-python scripts/classify_image.py path/to/your/image.png
+uv run scripts/classify_image.py path/to/your/image.png
 ```
 
 **Example Output:**
@@ -49,7 +51,7 @@ python scripts/classify_image.py path/to/your/image.png
 }
 ```
 
-The script will load the fine-tuned model, process the image along with a predefined prompt, and
+The script will load the fine-tuned adapters, process the image along with a predefined prompt, and
 print the predicted classification from the EduGraph ontology.
 
 ## Fine-tuning

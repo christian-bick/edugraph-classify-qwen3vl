@@ -2,9 +2,11 @@ import torch
 import argparse
 import base64
 import mimetypes
+import os # Added for os.environ.get
+from dotenv import load_dotenv # Added
 
 import torch
-from peft import PeftModel
+# Removed from peft import PeftModel
 from transformers import (
     AutoProcessor,
     Qwen3VLForConditionalGeneration,
@@ -17,29 +19,33 @@ def image_to_base64(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 def main(args):
-    # --- Configuration ---
-    # Update to a specific Qwen3-VL model
-    base_model_id = "Qwen/Qwen3-VL-4B-Instruct"
-    adapter_path = "out/adapters/multimodal_adapter"
+    load_dotenv() # Load environment variables
 
-    print("--- Loading model and adapter for inference ---")
+    # --- Configuration ---
+    model_size = os.environ.get("MODEL_SIZE")
+    if not model_size:
+        print("Error: MODEL_SIZE not found in .env file or environment variables.")
+        exit(1)
+
+    run_mode = os.environ.get("RUN_MODE", "train") # Default to 'train' if not set
+    
+    # Construct the path to the already merged model
+    model_path = f"out/models/qwen-3vl-{model_size}/{run_mode}/model"
+
+    print(f"--- Loading final merged model from {model_path} for inference ---")
 
     # Load the processor
-    processor = AutoProcessor.from_pretrained(base_model_id, trust_remote_code=True)
+    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 
-    # Load the base model without quantization and with Flash Attention
+    # Load the already merged model without quantization
     model = Qwen3VLForConditionalGeneration.from_pretrained(
-        base_model_id,
+        model_path,
         torch_dtype=torch.bfloat16,
         device_map="auto",
-        trust_remote_code=True
+        trust_remote_code=True,
+        attn_implementation="flash_attention_2"
     )
-
-    # Load the LoRA adapter and merge it into the base model
-    print(f"Loading adapter from {adapter_path}...")
-    model = PeftModel.from_pretrained(model, adapter_path)
-    model = model.merge_and_unload()
-    print("Adapter merged successfully.")
+    print("Merged model loaded successfully.")
 
     # --- Run Inference using modern Qwen3 API ---
     print(f"\n--- Running inference on {args.image_path} ---")
