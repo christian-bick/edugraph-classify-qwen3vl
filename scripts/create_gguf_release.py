@@ -39,9 +39,9 @@ def main():
         help="The GGUF quantization file type (e.g., 'q8_0', 'f16').",
     )
     parser.add_argument(
-        "--llama-cpp-dir",
+        "--llama-cpp",
         type=str,
-        default="./llama.cpp",
+        default="../llama.cpp",
         help="Path to the local llama.cpp repository.",
     )
     args = parser.parse_args()
@@ -54,10 +54,9 @@ def main():
     # The base model for the LoRA is the one with the KI adapter already merged.
     model_dir = f"out/models/{model_name}/{run_mode}/model"
 
-    output_dir = f"out/adapters/qwen-3vl-{model_size}/publish"
-    outfile_path = f"{output_dir}/{model_name}-{args.ftype.lower()}.gguf"
+    outfile_path = f"{publish_dir}/{model_name}-{args.ftype.lower()}.gguf"
 
-    convert_script_path = os.path.join(args.llama_cpp_dir, "convert.py")
+    convert_script_path = f"{args.llama_cpp}/convert_hf_to_gguf.py"
 
     # --- 2. Pre-flight Checks ---
     if not os.path.isdir(source_adapter_dir):
@@ -71,13 +70,12 @@ def main():
         print(f"Error: llama.cpp conversion script not found at: {convert_script_path}")
         sys.exit(1)
 
-    os.makedirs(output_dir, exist_ok=True)
-
-    # --- 3. Create clean 'publish' directory ---
-    print(f"--- Preparing 'publish' directory for {model_name} ---")
     if os.path.exists(publish_dir):
         print(f"Removing existing publish directory: {publish_dir}")
         shutil.rmtree(publish_dir)
+
+    # --- 3. Create clean 'publish' directory ---
+    print(f"--- Preparing 'publish' directory for {model_name} ---")
 
     print(f"Copying adapter from {source_adapter_dir} to {publish_dir}")
     shutil.copytree(source_adapter_dir, publish_dir)
@@ -86,15 +84,12 @@ def main():
     # --- 4. Generate GGUF using subprocess ---
     print(f"\n--- Generating GGUF file ---")
     print(f"Base model: {model_dir}")
-    print(f"LoRA adapter: {publish_dir}")
     print(f"Output file: {outfile_path}")
 
     command = [
         sys.executable,  # Use the same python interpreter that runs this script
         convert_script_path,
         model_dir,
-        "--lora",
-        publish_dir,
         "--outtype",
         args.ftype,
         "--outfile",
