@@ -1,21 +1,38 @@
-# Ignore Python virtual environment
-.venv/
+# Ignore IDE files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Ignore Git history
 .git/
 
-# Ignore IDE files
-.idea/
+# Ignore Python virtual environment
+.venv/
 
 # Ignore Python cache
 __pycache__/
 *.pyc
 
-# Ignore dataset files (created at runtime)
-*.jsonl
+# Ignore logfiles
+*.log
 
-# Ignore local data and output directories
-# The script will download/create these inside the container.
-data/
+# Ignore temporary output directories
 out/
+temp/
+
+# Ignore local script files
 gcp/
+
+# Ignore root project files
+.gitignore
+.editorconfig
+.env
+.env.example
+LICENSE
+README.md
