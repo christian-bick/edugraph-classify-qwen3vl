@@ -35,7 +35,7 @@ def main():
     parser.add_argument(
         "--ftype",
         type=str,
-        default="f16",
+        default="q8_0",
         help="The GGUF quantization file type (e.g., 'q8_0', 'f16').",
     )
     parser.add_argument(
