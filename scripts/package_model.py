@@ -44,6 +44,17 @@ def main():
         default="../llama.cpp",
         help="Path to the local llama.cpp repository.",
     )
+    parser.add_argument(
+        "--publish",
+        action="store_true",
+        help="Publish the final model files to Hugging Face Hub.",
+    )
+    parser.add_argument(
+        "--hf-username",
+        type=str,
+        default="christian-bick",
+        help="Hugging Face username or organization for the repository.",
+    )
     args = parser.parse_args()
 
     # --- 1. Define Paths ---
@@ -106,6 +117,29 @@ def main():
     except FileNotFoundError:
         print(f"\nError: Could not find '{sys.executable}'. Please ensure Python is in your PATH.")
         sys.exit(1)
+
+    if args.publish:
+        print("\n--- Publishing model to Hugging Face Hub ---")
+        repo_id = f"{args.hf_username}/Qwen3-VL-{model_size}-EduGraph"
+        
+        try:
+            from huggingface_hub import HfApi
+            api = HfApi()
+            
+            repo_url = api.upload_folder(
+                folder_path=publish_dir,
+                repo_id=repo_id,
+                repo_type="model",
+                commit_message=f"Add GGUF ({args.ftype}) and adapter files for {model_name}"
+            )
+            print(f"Successfully published model to: {repo_url}")
+        except ImportError:
+            print("\nError: 'huggingface_hub' library not found.")
+            print("Please install it to use the --publish feature: pip install huggingface-hub")
+            sys.exit(1)
+        except Exception as e:
+            print(f"\nAn error occurred during publishing: {e}")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
