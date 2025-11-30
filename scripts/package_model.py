@@ -6,7 +6,7 @@ import sys
 from dotenv import load_dotenv
 
 
-def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype):
+def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype, chat_template):
     """
     Generates a single GGUF file for a given model and quantization type (ftype).
     """
@@ -25,6 +25,8 @@ def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype
         ftype,
         "--outfile",
         outfile_path,
+        "--chat-template",
+        chat_template,
     ]
 
     try:
@@ -89,6 +91,28 @@ def main():
     )
     args = parser.parse_args()
 
+    # --- Load Chat Template ---
+    print("--- Preparing chat template ---")
+    prompt_file_path = "prompts/classification_v2.txt"
+    try:
+        with open(prompt_file_path, 'r', encoding='utf-8') as f:
+            fixed_prompt_text = f.read()
+    except FileNotFoundError:
+        print(f"Error: Prompt file not found at {prompt_file_path}")
+        sys.exit(1)
+
+    # This Jinja2 template instructs the model how to format the prompt.
+    # The llama.cpp client handles the image embedding (e.g., "Picture 1: <img></img>\n")
+    # This template simply provides the prompt as the user's message.
+    chat_template = (
+        "{% for message in messages %}"
+            "{% if message['role'] == 'user' %}"
+                f"{fixed_prompt_text}"
+            "{% endif %}"
+        "{% endfor %}"
+    )
+    print("Chat template prepared successfully.")
+
     # --- 1. Define Paths ---
     base_model_name = f"qwen-3vl-{model_size}"
     model_name = f"{base_model_name}-edugraph"
@@ -148,7 +172,8 @@ def main():
                 model_dir=model_dir,
                 publish_dir=inference_dir,
                 model_name=model_name,
-                ftype=ftype
+                ftype=ftype,
+                chat_template=chat_template
             )
 
     # --- 6. Publish to Hugging Face Hub ---
