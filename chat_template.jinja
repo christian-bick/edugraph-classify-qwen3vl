@@ -1,0 +1,7 @@
+{% for message in messages %}{% if message.role == 'user' %}{{ '<|im_start|>' + 'user' + '
+' }}{% for item in message.content %}{% if item.type == 'image' %}{{ 'Picture 1: ' + '<|vision_start|><|image_pad|><|vision_end|>' + '
+' }}{% elif item.type == 'text' %}{{ item.text }}{% endif %}{% endfor %}{{ fixed_prompt_text }}{{ '<|im_end|>' + '
+' }}{% elif message.role == 'assistant' %}{{ '<|im_start|>' + 'assistant' + '
+' }}{{ message.content }}{{ '<|im_end|>' + '
+' }}{% endif %}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>' + 'assistant' + '
+' }}{% endif %}

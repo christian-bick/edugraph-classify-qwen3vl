@@ -6,7 +6,7 @@ import sys
 from dotenv import load_dotenv
 
 
-def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype, chat_template):
+def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype):
     """
     Generates a single GGUF file for a given model and quantization type (ftype).
     """
@@ -25,8 +25,6 @@ def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype
         ftype,
         "--outfile",
         outfile_path,
-        "--chat-template",
-        chat_template,
     ]
 
     try:
@@ -42,13 +40,15 @@ def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype
 
 def main():
     """
-    This script prepares a LoRA adapter for release and converts it to a GGUF file.
+    This script prepares a model for release.
 
     It performs these main steps:
-    1. Copies the adapter files from a source directory to a clean 'publish' directory.
-    2. Copies a custom MODEL.md to serve as the README.
-    3. Iterates through a list of quantization types (ftypes) and generates a GGUF file for each.
-    4. Optionally, uploads the entire 'publish' directory to the Hugging Face Hub.
+    1. Prepares a clean 'publish' directory.
+    2. Copies the full merged model files into the 'publish' directory.
+    3. Copies a custom MODEL.md to serve as the README.
+    4. Copies a custom chat_template.jinja to bake into the model.
+    5. Iterates through a list of quantization types (ftypes) and generates a GGUF file for each.
+    6. Optionally, uploads the entire 'publish' directory to the Hugging Face Hub.
     """
     load_dotenv()  # Load environment variables from .env file
 
@@ -91,40 +91,14 @@ def main():
     )
     args = parser.parse_args()
 
-    # --- Load Chat Template ---
-    print("--- Preparing chat template ---")
-    prompt_file_path = "prompts/classification_v2.txt"
-    try:
-        with open(prompt_file_path, 'r', encoding='utf-8') as f:
-            fixed_prompt_text = f.read()
-    except FileNotFoundError:
-        print(f"Error: Prompt file not found at {prompt_file_path}")
-        sys.exit(1)
-
-    # This Jinja2 template instructs the model how to format the prompt.
-    # The llama.cpp client handles the image embedding (e.g., "Picture 1: <img></img>\n")
-    # This template simply provides the prompt as the user's message.
-    chat_template = (
-        "{% for message in messages %}"
-            "{% if message['role'] == 'user' %}"
-                f"{fixed_prompt_text}"
-            "{% endif %}"
-        "{% endfor %}"
-    )
-    print("Chat template prepared successfully.")
-
     # --- 1. Define Paths ---
     base_model_name = f"qwen-3vl-{model_size}"
     model_name = f"{base_model_name}-edugraph"
-    source_adapter_dir = f"out/models/{base_model_name}/{run_mode}/adapter"
     publish_dir = f"out/models/{base_model_name}/publish"
     model_dir = f"out/models/{base_model_name}/{run_mode}/model"
     convert_script_path = f"{args.llama_cpp}/convert_hf_to_gguf.py"
 
     # --- 2. Pre-flight Checks ---
-    if not os.path.isdir(source_adapter_dir):
-        print(f"Error: Source adapter directory not found at: {source_adapter_dir}")
-        sys.exit(1)
     if not os.path.isdir(model_dir):
         print(f"Error: Model directory not found at: {model_dir}")
         sys.exit(1)
@@ -141,7 +115,12 @@ def main():
     print(f"Create empty publish directory: {publish_dir}")
     os.makedirs(publish_dir)
 
-    # --- 4. Copy custom model card ---
+    # --- 4. Copy full merged model and templates ---
+    print(f"Copying full merged model from {model_dir} to {publish_dir}...")
+    shutil.copytree(model_dir, publish_dir, dirs_exist_ok=True)
+    print("Full merged model copied successfully.")
+    
+    # Copy custom model card
     print("Copying custom MODEL.md to publish directory as README.md...")
     model_card_source = "MODEL.md"
     model_card_dest = os.path.join(publish_dir, "README.md")
@@ -149,19 +128,25 @@ def main():
         shutil.copyfile(model_card_source, model_card_dest)
         print("Model card copied successfully.")
     else:
-        print(f"Warning: {model_card_source} not found. Skipping README.md creation.")
+        print(f"{model_card_source} not found.")
+        sys.exit(1)
+        
+    # Copy and overwrite chat template
+    print("Copying custom chat_template.jinja to publish directory...")
+    chat_template_source = "chat_template.jinja"
+    chat_template_dest = os.path.join(publish_dir, "chat_template.jinja")
+    if os.path.isfile(chat_template_source):
+        shutil.copyfile(chat_template_source, chat_template_dest)
+        print("Chat template copied successfully.")
+    else:
+        print(f"{chat_template_source} not found.")
+        sys.exit(1)
 
-    # --- 5. Copy full merged model files ---
-    print(f"Copying full merged model from {model_dir} to {publish_dir}...")
-    shutil.copytree(model_dir, publish_dir, dirs_exist_ok=True)
-    print("Full merged model copied successfully.")
-
+    # --- 5. Generate GGUF files ---
     inference_dir = f"{publish_dir}/inference"
-
     print(f"Create empty inference directory: {inference_dir}")
     os.makedirs(inference_dir)
 
-    # --- 6. Generate GGUF files ---
     ftypes_to_generate = [ftype.strip() for ftype in args.ftype.split(',') if ftype.strip()]
     if not ftypes_to_generate:
         print("\n--- No ftype specified, skipping GGUF generation. ---")
@@ -169,11 +154,10 @@ def main():
         for ftype in ftypes_to_generate:
             generate_gguf(
                 convert_script_path=convert_script_path,
-                model_dir=model_dir,
+                model_dir=publish_dir,  # Use the publish dir as the source for GGUF conversion
                 publish_dir=inference_dir,
                 model_name=model_name,
-                ftype=ftype,
-                chat_template=chat_template
+                ftype=ftype
             )
 
     # --- 6. Publish to Hugging Face Hub ---
@@ -187,7 +171,7 @@ def main():
                 folder_path=publish_dir,
                 repo_id=repo_id,
                 repo_type="model",
-                commit_message=f"Add GGUF ({', '.join(ftypes_to_generate)}) and adapter files for {model_name}"
+                commit_message=f"Add GGUF ({', '.join(ftypes_to_generate)}) and model files for {model_name}"
             )
             print(f"Successfully published model to: {repo_url}")
         except ImportError:
