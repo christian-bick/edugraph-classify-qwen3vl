@@ -3,7 +3,7 @@ license: apache-2.0
 pipeline_tag: image-text-to-text
 library_name: transformers
 base_model:
-- Qwen/Qwen3-VL-{MODEL_SIZE}-Instruct 
+- Qwen/Qwen3-VL-4B-Instruct 
 tags:
 - lora
 - sft
@@ -12,7 +12,7 @@ tags:
 - gguf
 ---
 
-# Qwen3-VL-{MODEL_SIZE}-EduGraph
+# Qwen3-VL-4B-EduGraph
 
 This model labels K-4 math learning material with competence concepts from the 
 [EduGraph](https://github.com/christian-bick/edugraph-ontology) ontology. 
@@ -28,7 +28,7 @@ the three competence dimensions of EduGraph: Area, Scope and Ability.
 - **Model type:** Multimodal Labeling
 - **Language(s):** Multilingual
 - **License:** Apache 2.0
-- **Finetuned from model:** Qwen3-VL-{MODEL_SIZE}-Instruct
+- **Finetuned from model:** Qwen3-VL-4B-Instruct
 - **Repository:** [GitHub](https://github.com/christian-bick/edugraph-qwen3vl)
 - **Status:** Research
 
@@ -47,10 +47,10 @@ semantic databases with incredibly high query accuracy.
 
 This model in combination with the EduGraph ontology combines:
 
-1) the natural structure of the field of math,
-2) our best understanding of cognitive abilities, 
-3) the scope & context of competence building and
-4) the semantics of entities within these structures
+1) The natural structure of the field of math,
+2) Our best understanding of cognitive abilities, 
+3) The scope & context of competence building and
+4) The semantics of entities within these structures
 
 This combination provides us with ways to compare the similarities and subtle differences of competences in ways 
 that other semantic indexing methods like text-chunking cannot achieve.
@@ -84,8 +84,8 @@ and can easily be trained on other open sourced base models.
 The easiest way to use this model is via GGUF which can be as easy as spawning an inference server with a
 couple of clicks. Here are some resources to get started:
 
-[Ollama Guide](https://huggingface.co/docs/hub/en/ollama)
-[Huggingface Guide](https://huggingface.co/docs/hub/en/gguf)
+* [Ollama Guide](https://huggingface.co/docs/hub/en/ollama)
+* [Huggingface Guide](https://huggingface.co/docs/hub/en/gguf)
 
 ### Using the Model directly
 
@@ -155,7 +155,7 @@ print(output_text)
 
 ## Training Details
 
-For the full details of the training procedure see:
+For full details of the training procedure, see:
 
 https://github.com/christian-bick/edugraph-qwen3vl
 
