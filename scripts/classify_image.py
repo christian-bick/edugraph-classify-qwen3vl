@@ -1,89 +1,90 @@
-import torch
 import argparse
-import base64
-import mimetypes
-import os # Added for os.environ.get
-from dotenv import load_dotenv # Added
+import os
+import sys
+from dotenv import load_dotenv
+from PIL import Image
 
 import torch
-# Removed from peft import PeftModel
 from transformers import (
     AutoProcessor,
     Qwen3VLForConditionalGeneration,
 )
 
-
-def image_to_base64(image_path):
-    """Converts an image file to a base64 encoded string."""
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
 def main(args):
-    load_dotenv() # Load environment variables
+    load_dotenv()  # Load environment variables
 
     # --- Configuration ---
     model_size = os.environ.get("MODEL_SIZE")
     if not model_size:
         print("Error: MODEL_SIZE not found in .env file or environment variables.")
-        exit(1)
+        sys.exit(1)
 
-    run_mode = os.environ.get("RUN_MODE", "train") # Default to 'train' if not set
-    
+    run_mode = os.environ.get("RUN_MODE", "train")  # Default to 'train' if not set
+
     # Construct the path to the already merged model
     model_path = f"out/models/qwen-3vl-{model_size}/{run_mode}/model"
 
+    if not os.path.isdir(model_path):
+        print(f"Error: Merged model not found at {model_path}")
+        print("Please ensure you have run the training and/or download scripts.")
+        sys.exit(1)
+
     print(f"--- Loading final merged model from {model_path} for inference ---")
 
-    # Load the processor
+    # Load the processor and model
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
-
-    # Load the already merged model without quantization
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         model_path,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         device_map="auto",
         trust_remote_code=True
     )
     print("Merged model loaded successfully.")
 
-    # --- Run Inference using modern Qwen3 API ---
+    # --- Run Inference ---
     print(f"\n--- Running inference on {args.image_path} ---")
-    
+
     # Load the detailed prompt from the file
     with open("prompts/classification_v2.txt", "r") as f:
         prompt_text = f.read()
 
-    # Convert the image to a base64 data URI
-    base64_image = image_to_base64(args.image_path)
-    mime_type, _ = mimetypes.guess_type(args.image_path)
-    if mime_type is None:
-        mime_type = "image/jpeg"  # Fallback
-    image_uri = f"data:{mime_type};base64,{base64_image}"
-    
-    # Create the message list
+    # Load the image using PIL
+    try:
+        pil_image = Image.open(args.image_path).convert("RGB")
+    except FileNotFoundError:
+        print(f"Error: Image file not found at {args.image_path}")
+        sys.exit(1)
+
+    # Create the message list with an image placeholder
     messages = [
         {
             "role": "user",
             "content": [
-                {"type": "image", "image": image_uri},
+                {"type": "image"},
                 {"type": "text", "text": prompt_text},
             ],
         }
     ]
-    
-    # 1. Use `apply_chat_template` to prepare all inputs in one step
-    inputs = processor.apply_chat_template(
+
+    # Step 1: Generate the text prompt using the chat template
+    text_prompt = processor.apply_chat_template(
         messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        return_dict=True,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+
+    # Step 2: Call the processor with both the text and the image
+    # The processor expects lists, so we wrap our single items.
+    inputs = processor(
+        text=[text_prompt],
+        images=[pil_image],
         return_tensors="pt"
     ).to(model.device)
 
-    # 2. Generate the token IDs
+    # Generate the token IDs
     generated_ids = model.generate(**inputs, max_new_tokens=512)
-    
-    # 3. Trim the prompt tokens and decode the response
+
+    # Trim the prompt tokens and decode the response
     generated_ids_trimmed = [
         out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
     ]
