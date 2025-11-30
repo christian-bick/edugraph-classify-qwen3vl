@@ -92,7 +92,18 @@ def main():
     shutil.copytree(source_adapter_dir, publish_dir)
     print("'publish' directory created successfully.")
 
-    # --- 4. Generate GGUF using subprocess ---
+    # --- 4. Copy custom model card ---
+    print("Copying custom MODEL.md to publish directory as README.md...")
+    model_card_source = "MODEL.md"
+    model_card_dest = os.path.join(publish_dir, "README.md")
+
+    if os.path.isfile(model_card_source):
+        shutil.copyfile(model_card_source, model_card_dest)
+        print("Model card copied successfully.")
+    else:
+        print(f"Warning: {model_card_source} not found. Skipping README.md creation.")
+
+    # --- 5. Generate GGUF using subprocess ---
     print(f"\n--- Generating GGUF file ---")
     print(f"Base model: {model_dir}")
     print(f"Output file: {outfile_path}")
