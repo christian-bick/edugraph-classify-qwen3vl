@@ -1,20 +1,15 @@
 ---
-base_model: out/models/knowledge
-library_name: peft
-pipeline_tag: text-generation
-tags:
-- base_model:adapter:out/models/knowledge
-- lora
-- sft
-- transformers
-- trl
----
----
 license: apache-2.0
 pipeline_tag: image-text-to-text
 library_name: transformers
 base_model:
-- Qwen/Qwen3-VL-{MODEL_SIZE}-Instruct
+- Qwen/Qwen3-VL-{MODEL_SIZE}-Instruct 
+tags:
+- lora
+- sft
+- transformers
+- trl
+- gguf
 ---
 
 # Qwen3-VL-{MODEL_SIZE}-EduGraph
