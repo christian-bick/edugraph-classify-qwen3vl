@@ -108,15 +108,14 @@ def main():
         print(f"Error: llama.cpp conversion script not found at: {convert_script_path}")
         sys.exit(1)
 
+    # --- 3. Prepare clean 'publish' directory ---
+    print(f"--- Preparing 'publish' directory ---")
     if os.path.exists(publish_dir):
         print(f"Removing existing publish directory: {publish_dir}")
         shutil.rmtree(publish_dir)
 
-    # --- 3. Copy adapters ---
-    #print(f"--- Preparing 'publish' directory for {base_model_name} ---")
-    #print(f"Copying adapter from {source_adapter_dir} to {publish_dir}")
-    #shutil.copytree(source_adapter_dir, publish_dir)
-    #print("'publish' directory created successfully.")
+    print(f"Create empty publish directory: {publish_dir}")
+    os.makedirs(publish_dir)
 
     # --- 4. Copy custom model card ---
     print("Copying custom MODEL.md to publish directory as README.md...")
@@ -133,6 +132,11 @@ def main():
     shutil.copytree(model_dir, publish_dir, dirs_exist_ok=True)
     print("Full merged model copied successfully.")
 
+    inference_dir = f"{publish_dir}/inference"
+
+    print(f"Create empty inference directory: {inference_dir}")
+    os.makedirs(inference_dir)
+
     # --- 6. Generate GGUF files ---
     ftypes_to_generate = [ftype.strip() for ftype in args.ftype.split(',') if ftype.strip()]
     if not ftypes_to_generate:
@@ -142,7 +146,7 @@ def main():
             generate_gguf(
                 convert_script_path=convert_script_path,
                 model_dir=model_dir,
-                publish_dir=publish_dir,
+                publish_dir=inference_dir,
                 model_name=model_name,
                 ftype=ftype
             )
