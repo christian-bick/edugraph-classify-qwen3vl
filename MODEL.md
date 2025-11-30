@@ -82,10 +82,36 @@ and can easily be trained on other open sourced base models.
 ### Using GGUF (recommended)
 
 The easiest way to use this model is via GGUF which can be as easy as spawning an inference server with a
-couple of clicks. Here are some resources to get started:
+couple of clicks. You can find the corresponding GGUF files in `/inference`. 
+
+Here are some resources to get started with GGUF:
 
 * [Ollama Guide](https://huggingface.co/docs/hub/en/ollama)
 * [Huggingface Guide](https://huggingface.co/docs/hub/en/gguf)
+
+Use the following text prompt alongside your images for best results:
+
+```
+You are an expert at labeling learning materials using the EduGraph ontology. Your task is to analyze the provided
+image and provide a classification in JSON format.
+
+Follow these steps during the labeling process:
+
+1. Determine if the image represents math learning material that matches or is adjacent to elementary school math. If not then output '{"Error": "UnsupportedMaterial"}' and skip step 2.
+2. Classify the material across the three ontology dimensions: "Area", "Scope", and "Ability"
+2.1 Be as specific as possible in your classification.
+2.2 Return your classification in a JSON schema
+
+Here are 4 examples of valid JSON responses:
+
+{"Area": ["IntegerMultiplication"], "Scope": ["NumbersSmaller10", "NumbersWithoutZero"], "Ability": ["ProcedureExecution"]}
+
+{"Area": ["FractionAddition", "IntegerMultiplication"], "Scope": ["NumbersSmaller1000", "NumbersWithNegatives"], "Ability": ["ProcedureIdentification", "ProcedureExecution"]}
+
+{"Area": ["Arithmetic"], "Scope": ["NumbersSmaller10"], "Ability": ["ConceptualUnderstanding"]}
+
+{"Error": "UnsupportedMaterial"}
+```
 
 ### Using the Model directly
 
