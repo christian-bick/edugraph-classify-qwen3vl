@@ -30,16 +30,7 @@ the three competence dimensions of EduGraph: Area, Scope and Ability.
 - **License:** Apache 2.0
 - **Finetuned from model:** Qwen3-VL-{MODEL_SIZE}-Instruct
 - **Repository:** [GitHub](https://github.com/christian-bick/edugraph-qwen3vl)
-- **Demo:** [ImagineBase](https://demo.edugraph.io/)
 - **Status:** Research
-
-## Demo
-
-You can experience the model's capabilities on [ImagineBase](https://demo.edugraph.io/), a search tool for
-K-4 math worksheets which you can query with an image of a math worksheet to find other math worksheets that 
-train the same competences. The matching is performed on a very nuanced level (e.g. addition of single digit 
-numbers with ten-carry, including negative numbers but excluding zero) with non-exact matches being ranked
-by proximity within the structures of math & abilities.
 
 ## Uses
 
