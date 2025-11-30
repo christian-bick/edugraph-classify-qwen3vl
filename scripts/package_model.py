@@ -143,22 +143,22 @@ def main():
         sys.exit(1)
 
     # --- 5. Generate GGUF files ---
-    inference_dir = f"{publish_dir}/inference"
-    print(f"Create empty inference directory: {inference_dir}")
-    os.makedirs(inference_dir)
-
-    ftypes_to_generate = [ftype.strip() for ftype in args.ftype.split(',') if ftype.strip()]
-    if not ftypes_to_generate:
-        print("\n--- No ftype specified, skipping GGUF generation. ---")
-    else:
-        for ftype in ftypes_to_generate:
-            generate_gguf(
-                convert_script_path=convert_script_path,
-                model_dir=publish_dir,  # Use the publish dir as the source for GGUF conversion
-                publish_dir=inference_dir,
-                model_name=model_name,
-                ftype=ftype
-            )
+    # inference_dir = f"{publish_dir}/inference"
+    # print(f"Create empty inference directory: {inference_dir}")
+    # os.makedirs(inference_dir)
+    #
+    # ftypes_to_generate = [ftype.strip() for ftype in args.ftype.split(',') if ftype.strip()]
+    # if not ftypes_to_generate:
+    #     print("\n--- No ftype specified, skipping GGUF generation. ---")
+    # else:
+    #     for ftype in ftypes_to_generate:
+    #         generate_gguf(
+    #             convert_script_path=convert_script_path,
+    #             model_dir=publish_dir,  # Use the publish dir as the source for GGUF conversion
+    #             publish_dir=inference_dir,
+    #             model_name=model_name,
+    #             ftype=ftype
+    #         )
 
     # --- 6. Publish to Hugging Face Hub ---
     if args.publish:
@@ -171,7 +171,7 @@ def main():
                 folder_path=publish_dir,
                 repo_id=repo_id,
                 repo_type="model",
-                commit_message=f"Add GGUF ({', '.join(ftypes_to_generate)}) and model files for {model_name}"
+                commit_message=f"Add model files for {model_name}"
             )
             print(f"Successfully published model to: {repo_url}")
         except ImportError:
