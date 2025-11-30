@@ -38,6 +38,17 @@
 {%- for message in messages %}
     {%- if message.role == "user" %}
         {{- '<|im_start|>' + message.role + '\n' }}
+        {%- for content in message.content %}
+            {%- if content.type == 'image' or 'image' in content or 'image_url' in content %}
+                {%- set image_count.value = image_count.value + 1 %}
+                {%- if add_vision_id %}Picture {{ image_count.value }}: {% endif -%}
+                <|vision_start|><|image_pad|><|vision_end|>
+            {%- elif content.type == 'video' or 'video' in content %}
+                {%- set video_count.value = video_count.value + 1 %}
+                {%- if add_vision_id %}Video {{ video_count.value }}: {% endif -%}
+                <|vision_start|><|video_pad|><|vision_end|>
+            {%- endif %}
+        {%- endfor %}
 You are an expert at labeling learning materials using the EduGraph ontology. Your task is to analyze the provided
 image and provide a classification in JSON format.
 
@@ -57,19 +68,6 @@ Here are 4 examples of valid JSON responses:
 {"Area": ["Arithmetic"], "Scope": ["NumbersSmaller10"], "Ability": ["ConceptualUnderstanding"]}
 
 {"Error": "UnsupportedMaterial"}
-        {%- for content in message.content %}
-            {%- if content.type == 'image' or 'image' in content or 'image_url' in content %}
-                {%- set image_count.value = image_count.value + 1 %}
-                {%- if add_vision_id %}Picture {{ image_count.value }}: {% endif -%}
-                <|vision_start|><|image_pad|><|vision_end|>
-            {%- elif content.type == 'video' or 'video' in content %}
-                {%- set video_count.value = video_count.value + 1 %}
-                {%- if add_vision_id %}Video {{ video_count.value }}: {% endif -%}
-                <|vision_start|><|video_pad|><|vision_end|>
-            {%- elif 'text' in content %}
-                {{- content.text }}
-            {%- endif %}
-        {%- endfor %}
         {{- '<|im_end|>\n' }}
     {%- elif message.role == "assistant" %}
         {{- '<|im_start|>' + message.role + '\n' }}
