@@ -112,11 +112,11 @@ def main():
         print(f"Removing existing publish directory: {publish_dir}")
         shutil.rmtree(publish_dir)
 
-    # --- 3. Create clean 'publish' directory ---
-    print(f"--- Preparing 'publish' directory for {base_model_name} ---")
-    print(f"Copying adapter from {source_adapter_dir} to {publish_dir}")
-    shutil.copytree(source_adapter_dir, publish_dir)
-    print("'publish' directory created successfully.")
+    # --- 3. Copy adapters ---
+    #print(f"--- Preparing 'publish' directory for {base_model_name} ---")
+    #print(f"Copying adapter from {source_adapter_dir} to {publish_dir}")
+    #shutil.copytree(source_adapter_dir, publish_dir)
+    #print("'publish' directory created successfully.")
 
     # --- 4. Copy custom model card ---
     print("Copying custom MODEL.md to publish directory as README.md...")
@@ -128,7 +128,12 @@ def main():
     else:
         print(f"Warning: {model_card_source} not found. Skipping README.md creation.")
 
-    # --- 5. Generate GGUF files ---
+    # --- 5. Copy full merged model files ---
+    print(f"Copying full merged model from {model_dir} to {publish_dir}...")
+    shutil.copytree(model_dir, publish_dir, dirs_exist_ok=True)
+    print("Full merged model copied successfully.")
+
+    # --- 6. Generate GGUF files ---
     ftypes_to_generate = [ftype.strip() for ftype in args.ftype.split(',') if ftype.strip()]
     if not ftypes_to_generate:
         print("\n--- No ftype specified, skipping GGUF generation. ---")
