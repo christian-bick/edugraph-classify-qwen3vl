@@ -21,8 +21,6 @@ __pycache__
 /qwen-env/
 
 #Data
-/data
-/dataset
 /out
 
 *.log
