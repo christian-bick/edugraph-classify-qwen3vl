@@ -79,12 +79,12 @@ def download_content(bucket_name, cache_dir, no_cache=False):
         print(f"An error occurred during S3 sync: {e}")
 
 
-def find_and_process_metadata(input_dir, output_dir):
+def find_and_process_metadata(input_dir):
     """
-    Finds all 'meta.json' files in a directory, processes them,
-    and creates a consolidated training JSONL file.
+    Finds all 'meta.json' files in a directory and processes them.
+    Returns a list of tuples with (image_path, label_string, output_filename).
     """
-    master_dataset = []
+    supported_dataset = []
 
     # Find all meta.json files recursively
     for meta_path in glob.glob(os.path.join(input_dir, '**', 'meta.json'), recursive=True):
@@ -124,35 +124,62 @@ def find_and_process_metadata(input_dir, output_dir):
                             for label in value_list
                         ]
                     else:
-                        # If for some reason it's not a list, keep it as is
                         processed_labels[key] = value_list
 
                 label_str = json.dumps(processed_labels)
+                output_filename = os.path.basename(image_path_relative_to_root)
+                supported_dataset.append((image_path_relative_to_root, label_str, output_filename))
+    
+    return supported_dataset
 
-                master_dataset.append((image_path_relative_to_root, label_str))
 
-    if not master_dataset:
-        print("No data found. The 'train_dataset.jsonl' file will not be created.")
-        return
+def process_unsupported_files():
+    """
+    Finds all images in the 'data/unsupported' directory and prepares them for the dataset.
+    Returns a list of tuples with (image_path, label_string, output_filename).
+    """
+    unsupported_dataset = []
+    unsupported_dir = "data/unsupported"
+    unsupported_label = json.dumps({"Error": "UnsupportedMaterial"})
+    unsupported_images_found = 0
+    unsupported_counter = 1
 
-    # Use the imported function to create the final JSONL file
-    print(f"\nFound {len(master_dataset)} total training examples.")
-    print(f"Creating dataset in folder '{output_dir}'...")
-    create_dataset(master_dataset, output_dir)
-    print("Done.")
+    if os.path.isdir(unsupported_dir):
+        print(f"\n--- Searching for unsupported images in: {unsupported_dir} ---")
+        # Search for common image file extensions
+        image_patterns = ['*.png', '*.jpg', '*.jpeg', '*.webp']
+        for pattern in image_patterns:
+            for image_path in glob.glob(os.path.join(unsupported_dir, '**', pattern), recursive=True):
+                # Normalize path for consistency
+                image_path_normalized = image_path.replace('\\', '/')
+                
+                # Get original extension
+                _, ext = os.path.splitext(image_path_normalized)
+                
+                # Generate unique output filename
+                output_filename = f"unsupported_{unsupported_counter:03d}{ext}"
+                unsupported_counter += 1
+
+                unsupported_dataset.append((image_path_normalized, unsupported_label, output_filename))
+                unsupported_images_found += 1
+        print(f"Found and added {unsupported_images_found} unsupported image examples.")
+    else:
+        print(f"\n--- Unsupported images directory not found at: {unsupported_dir} ---")
+        
+    return unsupported_dataset
 
 
 def create_dataset(raw_data, output_dir):
     """
-    Converts a list of (image_path, json_label_string) tuples to a
+    Converts a list of (image_path, json_label_string, output_filename) tuples to a
     Hugging Face `ImageFolder` dataset structure.
 
     This involves creating a directory with images and a `metadata.jsonl` file.
 
     Args:
         raw_data (list): A list of tuples, where each tuple contains the
-                         source path of the image and its corresponding
-                         JSON string label.
+                         source path of the image, its corresponding
+                         JSON string label, and the desired output filename.
         output_dir (str): The path to the directory where the ImageFolder
                           dataset will be created.
     """
@@ -165,19 +192,18 @@ def create_dataset(raw_data, output_dir):
     metadata_path = os.path.join(output_dir, "metadata.jsonl")
 
     with open(metadata_path, 'w') as f:
-        for source_image_path, label_str in raw_data:
+        for source_image_path, label_str, output_filename in raw_data:
             if not os.path.exists(source_image_path):
                 print(f"Warning: Source image not found at {source_image_path}. Skipping.")
                 continue
 
-            # Copy the image to the output directory
-            image_filename = os.path.basename(source_image_path)
-            dest_image_path = os.path.join(output_dir, image_filename)
+            # Copy the image to the output directory with its new name
+            dest_image_path = os.path.join(output_dir, output_filename)
             shutil.copy(source_image_path, dest_image_path)
 
             # Create the metadata entry
             data_entry = {
-                "file_name": image_filename,
+                "file_name": output_filename,
                 "labels": label_str
             }
             f.write(json.dumps(data_entry) + '\n')
@@ -209,10 +235,26 @@ def main():
     input_directory = "temp/input_multimodal"
     output_directory = "out/datasets/multimodal"
 
+    # 1. Download content from S3
     download_content(args.s3_bucket, input_directory, args.no_cache)
 
-    find_and_process_metadata(input_directory, output_directory)
+    # 2. Process supported and unsupported data separately
+    supported_data = find_and_process_metadata(input_directory)
+    unsupported_data = process_unsupported_files()
+    
+    master_dataset = supported_data + unsupported_data
 
+    # 3. Create the final dataset if any data was found
+    if not master_dataset:
+        print("No data found. The 'train_dataset.jsonl' file will not be created.")
+        return
+        
+    print(f"\nFound {len(master_dataset)} total training examples.")
+    print(f"Creating dataset in folder '{output_directory}'...")
+    create_dataset(master_dataset, output_directory)
+    print("Done.")
+
+    # 4. Optionally publish the dataset
     if args.publish:
         repo_id = "christian-bick/edugraph-worksheets"
         publish_dataset(output_directory, repo_id)
