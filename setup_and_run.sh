@@ -30,22 +30,21 @@ rm $DUMMY_FILE
 
 echo "--- GCS permission test passed. Proceeding with main script. ---"
 
+KNOWLEDGE_DEST="${GCS_DESTINATION}/knowledge"
+
 # --- Training stages ---
 if [ "$SKIP_KI" != "true" ]; then
     echo "--- Initiating Stage 1 (Knowledge Infusion) ---"
     uv run python scripts/finetune_stage1_ki.py
-    echo "--- Stage 1 complete. ---"
+    echo "--- Uploading knowledge adapter ---"
+    gsutil -m cp -r "out/adapters/knowledge" "${KNOWLEDGE_DEST}"
 else
     echo "--- Skipping Stage 1 (Knowledge Infusion) ---"
 
     if [ "$USE_KI" == "true" ]; then
         echo "--- Downloading latest knowledge adapter ---"
-
         mkdir -p out/adapters/knowledge
-
-        gsutil -m cp -r \
-          "${GCS_DESTINATION}/latest/knowledge" \
-          "out/adapters/"
+        gsutil -m cp -r "${KNOWLEDGE_DEST}" "out/adapters"
     fi
 
 fi
