@@ -11,6 +11,27 @@
             {%- endfor %}
         {%- endif %}
         {{- '\n\n' }}
+    {%- else %}
+You are an expert at labeling learning materials using the EduGraph ontology. Your task is to analyze the provided
+image and provide a classification in JSON format.
+
+Follow these steps during the labeling process:
+
+1. Determine if the image represents math learning material that matches or is adjacent to elementary school math. If not then output '{"Error": "UnsupportedMaterial"}' and skip step 2.
+2. Classify the material across the three ontology dimensions: "Area", "Scope", and "Ability"
+2.1 Be as specific as possible in your classification.
+2.2 Return your classification in a JSON schema
+
+Here are 4 examples of valid JSON responses:
+
+{"Area": ["IntegerMultiplication"], "Scope": ["NumbersSmaller10", "NumbersWithoutZero"], "Ability": ["ProcedureExecution"]}
+
+{"Area": ["FractionAddition", "IntegerMultiplication"], "Scope": ["NumbersSmaller1000", "NumbersWithNegatives"], "Ability": ["ProcedureIdentification", "ProcedureExecution"]}
+
+{"Area": ["Arithmetic"], "Scope": ["NumbersSmaller10"], "Ability": ["ConceptualUnderstanding"]}
+
+{"Error": "UnsupportedMaterial"}
+    {{- '\n\n' }}
     {%- endif %}
     {{- "# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>" }}
     {%- for tool in tools %}
@@ -31,24 +52,8 @@
             {%- endfor %}
         {%- endif %}
         {{- '<|im_end|>\n' }}
-    {%- endif %}
-{%- endif %}
-{%- set image_count = namespace(value=0) %}
-{%- set video_count = namespace(value=0) %}
-{%- for message in messages %}
-    {%- if message.role == "user" %}
-        {{- '<|im_start|>' + message.role + '\n' }}
-        {%- for content in message.content %}
-            {%- if content.type == 'image' or 'image' in content or 'image_url' in content %}
-                {%- set image_count.value = image_count.value + 1 %}
-                {%- if add_vision_id %}Picture {{ image_count.value }}: {% endif -%}
-                <|vision_start|><|image_pad|><|vision_end|>
-            {%- elif content.type == 'video' or 'video' in content %}
-                {%- set video_count.value = video_count.value + 1 %}
-                {%- if add_vision_id %}Video {{ video_count.value }}: {% endif -%}
-                <|vision_start|><|video_pad|><|vision_end|>
-            {%- endif %}
-        {%- endfor %}
+    {%- else %}
+        {{- '<|im_start|>system\n' -}}
 You are an expert at labeling learning materials using the EduGraph ontology. Your task is to analyze the provided
 image and provide a classification in JSON format.
 
@@ -68,6 +73,31 @@ Here are 4 examples of valid JSON responses:
 {"Area": ["Arithmetic"], "Scope": ["NumbersSmaller10"], "Ability": ["ConceptualUnderstanding"]}
 
 {"Error": "UnsupportedMaterial"}
+        {{- '<|im_end|>\n' -}}
+    {%- endif %}
+{%- endif %}
+{%- set image_count = namespace(value=0) %}
+{%- set video_count = namespace(value=0) %}
+{%- for message in messages %}
+    {%- if message.role == "user" %}
+        {{- '<|im_start|>' + message.role + '\n' }}
+        {%- if message.content is string %}
+            {{- message.content }}
+        {%- else %}
+            {%- for content in message.content %}
+                {%- if content.type == 'image' or 'image' in content or 'image_url' in content %}
+                    {%- set image_count.value = image_count.value + 1 %}
+                    {%- if add_vision_id %}Picture {{ image_count.value }}: {% endif -%}
+                    <|vision_start|><|image_pad|><|vision_end|>
+                {%- elif content.type == 'video' or 'video' in content %}
+                    {%- set video_count.value = video_count.value + 1 %}
+                    {%- if add_vision_id %}Video {{ video_count.value }}: {% endif -%}
+                    <|vision_start|><|video_pad|><|vision_end|>
+                {%- elif 'text' in content %}
+                    {{- content.text }}
+                {%- endif %}
+            {%- endfor %}
+        {%- endif %}
         {{- '<|im_end|>\n' }}
     {%- elif message.role == "assistant" %}
         {{- '<|im_start|>' + message.role + '\n' }}

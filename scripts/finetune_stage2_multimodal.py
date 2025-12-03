@@ -14,10 +14,6 @@ from trl import SFTConfig, SFTTrainer
 from scripts.config import get_config
 from scripts.data_processing import DataCollatorForMultimodalSupervisedDataset
 
-prompt_file_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'classification_v2.txt')
-with open(prompt_file_path, 'r', encoding='utf-8') as f:
-    PROMPT_TEXT = f.read()
-
 def prepare_dataset(example):
     """Prepares a single example for the SFTTrainer."""
     image = example["image"]
@@ -30,7 +26,6 @@ def prepare_dataset(example):
             "role": "user",
             "content": [
                 {"type": "image"},
-                {"type": "text", "text": PROMPT_TEXT}
             ]
         },
         {
@@ -76,6 +71,16 @@ def main():
 
     # --- Model and Processor Loading ---
     processor = AutoProcessor.from_pretrained(base_model_id, trust_remote_code=True)
+    
+    # Load and set the custom chat template from the local file
+    custom_template_path = os.path.join(os.path.dirname(__file__), '..', 'chat_template.jinja')
+    if os.path.exists(custom_template_path):
+        with open(custom_template_path, 'r', encoding='utf-8') as f:
+            processor.tokenizer.chat_template = f.read()
+        print(f"Loaded custom chat template from {custom_template_path}")
+    else:
+        print(f"Error: Custom chat template not found at {custom_template_path}.")
+        exit(1)
     
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
