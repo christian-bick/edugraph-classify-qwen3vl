@@ -60,7 +60,7 @@ def main(args):
     ]
 
     # Step 1: Generate the text prompt using the chat template
-    text_prompt = processor.apply_chat_template(
+    chat_prompt = processor.apply_chat_template(
         messages,
         tokenize=False,
         add_generation_prompt=True
@@ -69,7 +69,7 @@ def main(args):
     # Step 2: Call the processor with both the text and the image
     # The processor expects lists, so we wrap our single items.
     inputs = processor(
-        text=[text_prompt],
+        text=[chat_prompt],
         images=[pil_image],
         return_tensors="pt"
     ).to(model.device)
