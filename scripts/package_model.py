@@ -1,41 +1,9 @@
 import argparse
 import os
 import shutil
-import subprocess
 import sys
+
 from dotenv import load_dotenv
-
-
-def generate_gguf(convert_script_path, model_dir, publish_dir, model_name, ftype):
-    """
-    Generates a single GGUF file for a given model and quantization type (ftype).
-    """
-    print(f"\n--- Generating GGUF for ftype: {ftype} ---")
-
-    outfile_path = f"{publish_dir}/{model_name}-{ftype.lower()}.gguf"
-
-    print(f"Base model: {model_dir}")
-    print(f"Output file: {outfile_path}")
-
-    command = [
-        sys.executable,
-        convert_script_path,
-        model_dir,
-        "--outtype",
-        ftype,
-        "--outfile",
-        outfile_path,
-    ]
-
-    try:
-        subprocess.run(command, check=True)
-        print(f"--- GGUF file for {ftype} generated successfully! ---")
-        print(f"Output available at: {outfile_path}")
-    except subprocess.CalledProcessError as e:
-        print(f"\nError during GGUF conversion for {ftype}: {e}")
-    except FileNotFoundError:
-        print(f"\nError: Could not find '{sys.executable}'. Please ensure Python is in your PATH.")
-        sys.exit(1)
 
 
 def main():
@@ -44,11 +12,10 @@ def main():
 
     It performs these main steps:
     1. Prepares a clean 'publish' directory.
-    2. Copies the full merged model files into the 'publish' directory.
+    2. Copies the full merged model files into the 'publish'directory.
     3. Copies a custom MODEL.md to serve as the README.
     4. Copies a custom chat_template.jinja to bake into the model.
-    5. Iterates through a list of quantization types (ftypes) and generates a GGUF file for each.
-    6. Optionally, uploads the entire 'publish' directory to the Hugging Face Hub.
+    5. Optionally, uploads the entire 'publish' directory to the Hugging Face Hub.
     """
     load_dotenv()  # Load environment variables from .env file
 
@@ -58,25 +25,8 @@ def main():
         print("Error: MODEL_SIZE not found in .env file or environment variables.")
         sys.exit(1)
 
-    run_mode = os.environ.get("RUN_MODE")
-    if not run_mode:
-        print("Error: RUN_MODE not found in .env file or environment variables.")
-        sys.exit(1)
-
     parser = argparse.ArgumentParser(
         description="Prepare and package a model for release."
-    )
-    parser.add_argument(
-        "--ftype",
-        type=str,
-        default="q8_0,f16",
-        help="Comma-separated list of GGUF types (e.g., 'q8_0,f16'). Empty string skips GGUF generation.",
-    )
-    parser.add_argument(
-        "--llama-cpp",
-        type=str,
-        default="../llama.cpp",
-        help="Path to the local llama.cpp repository.",
     )
     parser.add_argument(
         "--publish",
@@ -95,15 +45,11 @@ def main():
     base_model_name = f"qwen-3vl-{model_size}"
     model_name = f"{base_model_name}-edugraph"
     publish_dir = f"out/models/{base_model_name}/publish"
-    model_dir = f"out/models/{base_model_name}/{run_mode}/model"
-    convert_script_path = f"{args.llama_cpp}/convert_hf_to_gguf.py"
-
+    model_dir = f"out/models/{base_model_name}/train/model"
+    
     # --- 2. Pre-flight Checks ---
     if not os.path.isdir(model_dir):
         print(f"Error: Model directory not found at: {model_dir}")
-        sys.exit(1)
-    if not os.path.isfile(convert_script_path):
-        print(f"Error: llama.cpp conversion script not found at: {convert_script_path}")
         sys.exit(1)
 
     # --- 3. Prepare clean 'publish' directory ---
@@ -142,25 +88,7 @@ def main():
         print(f"{chat_template_source} not found.")
         sys.exit(1)
 
-    # --- 5. Generate GGUF files ---
-    # inference_dir = f"{publish_dir}/inference"
-    # print(f"Create empty inference directory: {inference_dir}")
-    # os.makedirs(inference_dir)
-    #
-    # ftypes_to_generate = [ftype.strip() for ftype in args.ftype.split(',') if ftype.strip()]
-    # if not ftypes_to_generate:
-    #     print("\n--- No ftype specified, skipping GGUF generation. ---")
-    # else:
-    #     for ftype in ftypes_to_generate:
-    #         generate_gguf(
-    #             convert_script_path=convert_script_path,
-    #             model_dir=publish_dir,  # Use the publish dir as the source for GGUF conversion
-    #             publish_dir=inference_dir,
-    #             model_name=model_name,
-    #             ftype=ftype
-    #         )
-
-    # --- 6. Publish to Hugging Face Hub ---
+    # --- 5. Publish to Hugging Face Hub ---
     if args.publish:
         print("\n--- Publishing model to Hugging Face Hub ---")
         repo_id = f"{args.hf_username}/Qwen3-VL-{model_size}-EduGraph"
