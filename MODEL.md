@@ -1,5 +1,5 @@
 ---
-license: CC BY-NC-SA 4.0
+license: cc-by-nc-sa-4.0
 pipeline_tag: image-text-to-text
 library_name: transformers
 base_model:
