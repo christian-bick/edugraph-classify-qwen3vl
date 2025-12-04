@@ -19,10 +19,8 @@ def main(args):
         print("Error: MODEL_SIZE not found in .env file or environment variables.")
         sys.exit(1)
 
-    run_mode = os.environ.get("RUN_MODE", "train")  # Default to 'train' if not set
-
     # Construct the path to the already merged model
-    model_path = f"out/models/qwen-3vl-{model_size}/{run_mode}/model"
+    model_path = f"out/models/qwen-3vl-{model_size}/publish"
 
     if not os.path.isdir(model_path):
         print(f"Error: Merged model not found at {model_path}")
@@ -44,10 +42,6 @@ def main(args):
     # --- Run Inference ---
     print(f"\n--- Running inference on {args.image_path} ---")
 
-    # Load the detailed prompt from the file
-    with open("prompts/classification_v2.txt", "r") as f:
-        prompt_text = f.read()
-
     # Load the image using PIL
     try:
         pil_image = Image.open(args.image_path).convert("RGB")
@@ -60,8 +54,7 @@ def main(args):
         {
             "role": "user",
             "content": [
-                {"type": "image"},
-                {"type": "text", "text": prompt_text},
+                {"type": "image"}
             ],
         }
     ]
