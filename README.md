@@ -155,61 +155,24 @@ After a model has been trained and the output artifacts have been downloaded & t
 the final model artifacts for publication. This involves creating a quantized and standardized version
 of your model in the GGUF format that makes is fast and easy to host the model.
 
-### Prerequisites
-
-**Clone `llama.cpp`:** The conversion process relies on scripts from the `llama.cpp` repository. Ideally clone 
-it into the parent directory of your project folder, to take advantage of the script's defaults:
-
-```bash
-git clone https://github.com/ggerganov/llama.cpp.git ../llama.cpp
-```
-
 **Configure Environment:** The script uses the `MODEL_SIZE` and `RUN_MODE` variables from your `.env` file 
-to automatically identify the correct model files to convert. Ensure these are set correctly.
+to automatically identify the correct model files to publish. Ensure these are set correctly.
 
-### Generating the GGUF File
-
-The `scripts/package_model.py` script automates the process of staging the adapter files into a clean `publish` 
-directory, then invoking the `llama.cpp` conversion script to create the GGUF file and optionally pushing the
-model to Huggingface.
-
-To run the script, use the following command:
-
+Publish the model on Huggingface with defaults:
 ```bash
-uv run --with=sentencepiece scripts/package_model.py
-```
-
-**Command Breakdown:**
-
-*   `uv run --with=sentencepiece`: uv runs the script in a temporary virtual environment with 
-    the `sentencepiece` library installed, a required dependency for the llama.cpp conversion script
-*   `scripts/package_model.py`: The script that orchestrates the process.
-*   `--ftype <quantization_type>`: Specify the desired GGUF quantization type. Default: `q8_0`
-* `--llama-cpp`: The destination of the cloned llama-cpp repo. Default: `../llama.cpp`  
-* `--publish`: Publish adapter and GGUF files on Huggingface
-
-
-**Example 1:** Publish the model on Huggingface with defaults:
-```bash
-uv run --with=sentencepiece scripts/publish_model.py --publish
-```
-
-**Example 2:** Generate a 4-bit quantized GGUF:
-```bash
-uv run --with=sentencepiece scripts/publish_model.py --ftype q4_k_m
-```
-
-**Example 3:** Point to an alternative location of llama.cpp:
-```bash
-uv run --with=sentencepiece scripts/publish_model.py --llama-cpp ../other/path/to/llama.cpp
+uv run scripts/publish_model.py --publish
 ```
 
 ### Output
 
 After the script runs successfully, you will find:
 1.  A `publish` directory located at `out/models/qwen-3vl-{MODEL_SIZE}/publish/`.
-2.  This directory contains both the original adapter files and the newly generated `.gguf` file, ready for publication.
-3.  The content of that directory being pushed to Huggingface when using the `--publish` option
+2.  This directory contains the merged model files ready for quantization or further tuning.
+3.  The content of that directory can be pushed to Huggingface when using the `--publish` option
+
+### Generating the GGUF File
+
+Use the GGUF-my-repo space to convert to GGUF format and quantize model weights to smaller sizes.
 
 ## Datasets
 
