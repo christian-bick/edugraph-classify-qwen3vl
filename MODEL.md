@@ -65,9 +65,39 @@ fine-tuning.
 * **Do NOT use in a classroom environment**
 * **Do NOT use for automations that might impact children**
 
-## How to Get Started with the Model
+## Using the Model with llama.cpp (recommended)
 
-### Using the Model directly
+For normal inference tasks, it is recommended to use the quantized version of this model with [llama.cpp](https://github.com/ggml-org/llama.cpp):
+
+### Installation
+
+Winget (Windows)
+
+```sh
+winget install llama.cpp
+```
+
+Homebrew (Mac and Linux)
+
+```sh
+brew install llama.cpp
+```
+
+### CLI
+
+```bash
+llama-cli --hf-repo christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF --hf-file qwen3-vl-4b-edugraph-q4_k_m.gguf -p "A worksheet for adding single digit numbers"
+```
+
+### Server
+
+```bash
+llama-server --hf-repo christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF --hf-file qwen3-vl-4b-edugraph-q4_k_m.gguf -c 2048
+```
+
+GGUF Repo (Q4_K_M): [christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF](https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF)
+
+## Using the Model directly
 
 ```python
 from transformers import AutoModelForImageTextToText, AutoProcessor
@@ -109,10 +139,6 @@ output_text = processor.batch_decode(
 )
 print(output_text)
 ```
-
-### Using GGUF
-
-Coming soon.
 
 ## Training Details
 
