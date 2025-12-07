@@ -3,80 +3,64 @@ import json
 import os
 import shutil
 import argparse
-import boto3
-import botocore
-from botocore.client import Config
-from botocore.exceptions import NoCredentialsError
+import requests
+import tarfile
 
 from datasets import load_dataset
 
 
-def download_content(bucket_name, cache_dir, no_cache=False):
+def download_content(version, cache_dir, no_cache=False):
     """
-    Syncs a directory from an S3 bucket, with caching.
-    - Downloads new/modified files from S3.
-    - Deletes local files that are not in S3.
+    Downloads and unpacks a .tar.gz release from GitHub.
     """
     if os.path.exists(cache_dir):
         if no_cache:
             print(f"Clearing cache directory: {cache_dir}")
             shutil.rmtree(cache_dir)
         else:
+            print("Cache directory exists and --no-cache not specified. Skipping download.")
             return
 
-    # Ensure that the directory exists
     os.makedirs(cache_dir, exist_ok=True)
 
-    print(f"--- Syncing data from S3 bucket: s3://{bucket_name} to {cache_dir} ---")
+    url = f"https://github.com/christian-bick/imagine-content/releases/download/v{version}/worksheets.tar.gz"
+    tar_path = os.path.join(cache_dir, "worksheets.tar.gz")
+
+    print(f"--- Downloading data from GitHub release: {url} ---")
     try:
-        s3 = boto3.client('s3', config=Config(signature_version=botocore.UNSIGNED))
+        # Download the file
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(tar_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        print("Download complete.")
 
-        # Ensure local directory exists (now potentially recreated after rmtree)
+        # Unpack the tarball
+        print(f"Unpacking {tar_path} to {cache_dir}...")
+        with tarfile.open(tar_path, "r:gz") as tar:
+            # Extract all contents to the root of cache_dir
+            tar.extractall(path=cache_dir)
+        print("Unpacking complete.")
 
-        # Part 1: Download/update files from S3
-        paginator = s3.get_paginator('list_objects_v2')
-        s3_files = set()
-
-        for page in paginator.paginate(Bucket=bucket_name):
-            if 'Contents' not in page:
-                continue
-            for obj in page['Contents']:
-                s3_key = obj['Key']
-                # S3 keys use '/', even on Windows
-                s3_files.add(s3_key)
-                local_file_path = os.path.join(cache_dir, *s3_key.split('/'))
-
-                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
-
-                should_download = True
-                if os.path.exists(local_file_path):
-                    local_file_size = os.path.getsize(local_file_path)
-                    s3_object_size = obj['Size']
-                    # A simple size check. A more robust check would involve ETag/MD5.
-                    if local_file_size == s3_object_size:
-                        should_download = False
-
-                if should_download:
-                    print(f"Downloading {s3_key}...")
-                    s3.download_file(bucket_name, s3_key, local_file_path)
-
-        # Part 2: Delete local files that are not in S3
-        for root, _, files in os.walk(cache_dir):
-            for name in files:
-                local_path = os.path.join(root, name)
-                # create a relative path with forward slashes to match S3 keys
-                relative_path = os.path.relpath(local_path, cache_dir).replace(os.sep, '/')
-                if relative_path not in s3_files:
-                    print(f"Deleting local file not in S3: {local_path}")
-                    os.remove(local_path)
-
-        print("--- S3 sync complete ---")
-
-    except NoCredentialsError:
-        print("AWS credentials not found. Please configure your AWS credentials.")
-        print("Skipping data sync. Please sync manually.")
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading the file: {e}")
+        shutil.rmtree(cache_dir)  # Clean up on failure
+        exit(1)
+    except tarfile.TarError as e:
+        print(f"Error unpacking the tar file: {e}")
+        shutil.rmtree(cache_dir)  # Clean up on failure
+        exit(1)
     except Exception as e:
-        print(f"An error occurred during S3 sync: {e}")
+        print(f"An unexpected error occurred: {e}")
+        shutil.rmtree(cache_dir) # Clean up on failure
+        exit(1)
+    finally:
+        # Clean up the downloaded tarball
+        if os.path.exists(tar_path):
+            os.remove(tar_path)
+            
+    print("--- Data download and extraction complete ---")
 
 
 def find_and_process_metadata(input_dir):
@@ -227,16 +211,16 @@ def publish_dataset(dataset_dir, repo_id):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate and optionally publish the multimodal dataset.")
-    parser.add_argument("--no-cache", action="store_true", help="Always sync data from S3 bucket before generating dataset.")
-    parser.add_argument("--s3-bucket", type=str, default="imagine-content", help="S3 bucket name to sync from.")
+    parser.add_argument("--no-cache", action="store_true", help="Always re-download and process the data.")
+    parser.add_argument("--version", type=str, default="1.0.0", help="Version of the GitHub release to download.")
     parser.add_argument("--publish", action="store_true", help="Publish the dataset to Hugging Face Hub.")
     args = parser.parse_args()
 
     input_directory = "temp/input_multimodal"
     output_directory = "out/datasets/multimodal"
 
-    # 1. Download content from S3
-    download_content(args.s3_bucket, input_directory, args.no_cache)
+    # 1. Download content from GitHub Release
+    download_content(args.version, input_directory, args.no_cache)
 
     # 2. Process supported and unsupported data separately
     supported_data = find_and_process_metadata(input_directory)
@@ -246,7 +230,7 @@ def main():
 
     # 3. Create the final dataset if any data was found
     if not master_dataset:
-        print("No data found. The 'train_dataset.jsonl' file will not be created.")
+        print("No data found. The dataset will not be created.")
         return
         
     print(f"\nFound {len(master_dataset)} total training examples.")
