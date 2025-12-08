@@ -208,7 +208,7 @@ the EduGraph ontology.
     EduGraph ontology dimensions (Area, Scope, Ability). This dataset is used for multimodal
     fine-tuning, enabling the model to directly classify images.
 
-### Publishing Datasets on Huggingface Hub
+### Generation Datasets and publishing them on Huggingface
 
 **Prerequisites:**
 
@@ -217,17 +217,18 @@ Hugging Face Login: Authenticate with Hugging Face using `huggingface-cli login`
 **Steps to Generate and Upload Datasets:**
 
 1. Run the above scripts from the project root.
-2. Use the `--no-cache` option to force downloading raw source data
-3. Use the `--publish` option for publishing the datasets on Huggingface
+2. Use the `--version` option to determine the source version
+3. Use the `--no-cache` option to force downloading from the source
+4. Use the `--publish` option for publishing on Huggingface
 
 **Examples**
 
-Knowledge infusion dataset for release 0.4.0:
+Generate knowledge infusion dataset for ontology release 0.4.0 forcing redownload:
 ```bash
-uv run scripts/generate_dataset_ki.py --version 0.4.0 --publish
+uv run scripts/generate_dataset_ki.py --version 0.4.0 --no-cache
 ```
 
-Multimodal dataset with fresh data:
+Generate & publish multimodal dataset with for content release 1.0.0:
 ```bash
-uv run scripts/generate_dataset_multimodal.py --no-cache --publish
+uv run scripts/generate_dataset_multimodal.py --version 1.0.0 --publish
 ```
