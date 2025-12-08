@@ -1,5 +1,4 @@
-curl -X POST "https://llama-server-gpu-575953891979.europe-west1.run.app/v1/chat/completions" \
--H "Authorization: bearer $(gcloud auth print-identity-token)" \
+curl -X POST "https://llama-server-575953891979.europe-west1.run.app/v1/chat/completions" \
 -H "Content-Type: application/json" \
 -d '{
     "messages": [
