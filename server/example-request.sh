@@ -16,35 +16,5 @@ curl -X POST "https://llama-server-575953891979.europe-west1.run.app/v1/chat/com
         }
     ],
     "stream": false,
-    "reasoning_format": "auto",
-    "temperature": 0,
-    "max_tokens": 1024,
-    "dynatemp_range": 0,
-    "dynatemp_exponent": 1,
-    "top_k": 1,
-    "top_p": 1,
-    "min_p": 0,
-    "xtc_probability": 0,
-    "xtc_threshold": 0.1,
-    "typ_p": 1,
-    "repeat_last_n": 64,
-    "repeat_penalty": 1,
-    "presence_penalty": 0,
-    "frequency_penalty": 0,
-    "dry_multiplier": 0,
-    "dry_base": 1.75,
-    "dry_allowed_length": 2,
-    "dry_penalty_last_n": 4096,
-    "samplers": [
-        "penalties",
-        "dry",
-        "top_n_sigma",
-        "top_k",
-        "typ_p",
-        "top_p",
-        "min_p",
-        "xtc",
-        "temperature"
-    ],
-    "timings_per_token": false
+    "reasoning_format": "auto"
 }'
