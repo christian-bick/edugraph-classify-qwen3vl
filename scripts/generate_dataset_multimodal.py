@@ -23,7 +23,7 @@ def download_content(version, cache_dir, no_cache=False):
 
     os.makedirs(cache_dir, exist_ok=True)
 
-    url = f"https://github.com/christian-bick/imagine-content/releases/download/v{version}/worksheets.tar.gz"
+    url = f"https://github.com/christian-bick/edugraph-content/releases/download/v{version}/worksheets.tar.gz"
     tar_path = os.path.join(cache_dir, "worksheets.tar.gz")
 
     print(f"--- Downloading data from GitHub release: {url} ---")
