@@ -1,5 +1,5 @@
 ---
-license: cc-by-nc-sa-4.0
+license: agpl-3.0
 pipeline_tag: image-text-to-text
 library_name: transformers
 base_model:
@@ -9,7 +9,6 @@ tags:
 - sft
 - transformers
 - trl
-- gguf
 ---
 
 # Qwen3-VL-4B-EduGraph
@@ -27,7 +26,7 @@ the three competence dimensions of EduGraph: Area, Scope and Ability.
 - **Funded by:** [Community Sponsors](https://github.com/sponsors/christian-bick) & [GCP Credits](https://cloud.google.com/startup)
 - **Model type:** Multimodal Labeling
 - **Language(s):** Multilingual
-- **License:** CC BY-NC-SA 4.0
+- **License:** GNU Affero General Public License v3.0
 - **Finetuned from model:** Qwen3-VL-4B-Instruct
 - **Repository:** [GitHub](https://github.com/christian-bick/edugraph-qwen3vl)
 - **Status:** Research
