@@ -232,3 +232,22 @@ Generate & publish multimodal dataset with for content release 1.0.0:
 ```bash
 uv run scripts/generate_dataset_multimodal.py --version 1.0.0 --publish
 ```
+
+## Contributing
+
+Contributions are welcome!
+
+Ideally, **always open a Github issue** first to make sure your contribution aligns with the project's scope.
+
+Please also make sure to add tests with your contribution and to only submit PRs with green tests.
+
+Please be aware that you need to sign a contributor agreement that allows us to relicense
+your contribution under other terms _in addition_ to the AGPL license. We aim for a balanced
+approach between open source availability and project viability. Being able to redistribute
+contributions under other licenses helps us accomplish that goal.
+
+## License
+
+This project is licensed under the GNU Affero General Public License. See the [LICENSE](LICENSE) file for details.
+
+If these license terms are not working for you, then contact us, and we can discuss alternative options.
