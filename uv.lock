@@ -308,7 +308,7 @@ wheels = [
 ]
 
 [[package]]
-name = "edugraph-qwen3-finetune"
+name = "edugraph"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
