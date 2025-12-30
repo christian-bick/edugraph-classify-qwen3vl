@@ -77,6 +77,17 @@ def main():
         print(f"{model_card_source} not found.")
         sys.exit(1)
         
+    # Copy LICENSE file
+    print("Copying LICENSE to publish directory...")
+    license_source = "LICENSE"
+    license_dest = os.path.join(publish_dir, "LICENSE")
+    if os.path.isfile(license_source):
+        shutil.copyfile(license_source, license_dest)
+        print("LICENSE copied successfully.")
+    else:
+        print(f"{license_source} not found.")
+        sys.exit(1)
+        
     # Copy and overwrite chat template
     print("Copying custom chat_template.jinja to publish directory...")
     chat_template_source = "chat_template.jinja"
