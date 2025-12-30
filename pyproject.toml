@@ -7,7 +7,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
 dependencies = [
-    # PyTorch dependencies for CUDA 12.6
+    # PyTorch dependencies for CUDA 12.8
     "torch~=2.8.0",
     "torchvision~=0.23.0",
 
@@ -43,7 +43,7 @@ dev = [
 # Define a named index for the PyTorch CUDA packages
 #[[tool.uv.index]]
 #name = "pytorch-cuda"
-#url = "https://download.pytorch.org/whl/cu126"
+#url = "https://download.pytorch.org/whl/cu128"
 #explicit = true
 
 # Map specific packages to the named index
