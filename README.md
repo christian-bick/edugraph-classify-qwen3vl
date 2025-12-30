@@ -250,4 +250,4 @@ contributions under other licenses helps us accomplish that goal.
 
 This project is licensed under the GNU Affero General Public License. See the [LICENSE](LICENSE) file for details.
 
-If these license terms are not working for you, then contact us, and we can discuss alternative options.
+If these license terms are not working for you, then get in touch, and we can discuss your options.
