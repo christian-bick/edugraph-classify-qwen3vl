@@ -1,13 +1,13 @@
 # EduGraph Qwen3-VL Classifier
 
-This model labels K-4 math learning material with competence concepts from the 
+This model classifies K-4 math learning material with skill concepts from the 
 [EduGraph](https://github.com/christian-bick/edugraph-ontology) ontology. 
 
-For instructions on how to use the model, please visit the model's [Huggingface Repository](https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph).
-
-The labeling is performed by a fine-tuned Qwen3-VL model, which is capable of
+The classification is performed by a fine-tuned Qwen3-VL model, which is capable of
 processing images to understand and categorize content. It is trained to label content along
-the three competence dimensions of EduGraph: Area, Scope and Ability.
+the three competence dimensions of EduGraph: `Area`, `Scope` and `Ability`.
+
+For instructions on how to use the model, please visit the model's [Huggingface Repository](https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph).
 
 ## Setup
 
