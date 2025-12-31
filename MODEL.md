@@ -84,7 +84,7 @@ brew install llama.cpp
 
 ### Download
 
-We need to download the trained classification model *as well as* the original vision projector of Qwen:
+Download the trained classification model *and* the original vision projector of Qwen3-VL:
 
 ```
 # Classification model
@@ -96,6 +96,8 @@ curl -L https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF/resolve/main/mmpro
 
 ### CLI
 
+Classifying a provided image with `llama-mtmd-cli`:
+
 ```bash
 llama-mtmd-cli \
   -m model.gguf \
@@ -104,10 +106,30 @@ llama-mtmd-cli \
   -c 8192 \
   --n-predict 1024 \
   --temp 0.0 \
-  --image ./path/to/image.png
+  --image ./path/to/image.png \
+  -p "Learning Material"
 ```
 
+For CPU usage (set `-t` to your pyhical cores):
+
+```bash
+llama-mtmd-cli \
+  -m model.gguf \
+  --mmproj mmproj.gguf \
+  --no-mmproj-offload \
+  -t 4 \
+  -c 8192 \
+  --n-predict 1024 \
+  --temp 0.0 \
+  --image ./path/to/image.png \
+  -p "Learning Material"
+```
+
+Optionally add `--flash-attn` to speed up tokenization for supported hardware.
+
 ### Server
+
+Starting an inference server with `llama-server`:
 
 ```bash
 llama-server \
@@ -121,7 +143,14 @@ llama-server \
   --host 0.0.0.0
 ```
 
+Optionally add `--flash-attn` to speed up tokenization for supported hardware.
+
+### GGUF Repositories
+
+In case you want to use other ways to provide the quantized model, check out these repositories:
+
 EduGraph GGUF Repo: [christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF](https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF)
+
 Qwen3-VL GGUF Repo: [Qwen/Qwen3-VL-4B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF)
 
 ## Using the Model with transformers
