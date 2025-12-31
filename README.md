@@ -39,11 +39,10 @@ Please install Docker for your operating system if you haven't already:
 The training process on Google Cloud Platform is managed by three main scripts that you can also use
 as a guideline for training in other environments.
 
-**Setup: `.env` file**
+**Setup `.env` file:**
 
-Before running the scripts, you must create a `.env` file in the project root by copying the
-`.env.example` file. Fill in the required values for your GCP project, such as `PROJECT_ID`,
-`VM_ZONE`, `GCS_BUCKET_NAME`, etc.
+Before running the scripts, create a `.env` file from `.env.example`. Fill in the required values for 
+your GCP project, such as `PROJECT_ID`, `VM_ZONE`, `GCS_BUCKET_NAME`, etc.
 
 **Step 1: Build and Push Docker Image**
 
@@ -58,7 +57,7 @@ bash gcp/build_and_push.sh
 
 This script creates a new spot VM instance on GCP with a single GPU, and starts the training
 process using the Docker image from Step 1. The VM's startup script will automatically pull the
-image and run the training. The training data will be loaded from the Hugging Face Hub.
+image and run the training. The training data will be loaded automatically from Huggingface.
 
 ```bash
 bash gcp/run_on_vm.sh
@@ -96,8 +95,9 @@ docker build --build-arg MODEL_SIZE=$MODEL_SIZE -t qwen-trainer .
 **Step 2: Run the Training Container**
 
 This command overrides the default container command to run the `setup_and_run.local.sh`
-script, which is simplified for local training. The training data will be loaded directly
-from the Hugging Face Hub.
+script, which is simplified for local training. The training data will be loaded 
+automatically from Huggingface.
+
 - The `--env-file .env` flag passes your local configuration into the container.
 - The `-v $(pwd)/out:/app/out` command mounts your local `out/` directory to save the trained
   model adapters to your machine.
@@ -115,13 +115,13 @@ docker run --gpus all --rm \
 To test the trained model for inference on a new image, run the `scripts/classify_image.py` script
 and provide the path to the image file as an argument. 
 
-**Note:** Make sure that the training artifacts, including the merged model have been downloaded/synced and 
+**Note:** Make sure that the training artifacts have been downloaded/synced successfully and 
 that your environment variables (MODEL_SIZE, RUN_MODE) are set to same values as during fine-tuning.
 For `MODEL_SIZE=4B` and `RUN_MODE=train` the expected model location is: `out/models/qwen-3vl-4b/train/model`
 
 **Also Note:** Inference at this stage will be slow because we haven't quantized the model yet and inference 
 is executed on the CPU to simplify local setup. Even on high-end machines, it can take 1-2 minutes to get results.
-Inference will be much faster in a production environment.
+Only use it for quick validation. Inference will be much faster in a production environment.
 
 **Example Usage:**
 
@@ -148,14 +148,14 @@ uv run scripts/classify_image.py path/to/your/image.png
 }
 ```
 
-The script will load the fine-tuned and merged model, process the image along with a predefined prompt, and
-print the predicted classification based on the EduGraph ontology.
+The script will load the fine-tuned and merged model, process the image along with the predefined system prompt, 
+and print the predicted classification using terms from the EduGraph ontology.
 
 ## Model Publication
 
 After a model has been trained and the output artifacts have been downloaded & tested, you can prepare 
 the final model artifacts for publication. This involves creating a quantized and standardized version
-of your model in the GGUF format that makes is fast and easy to host the model.
+of the model in the GGUF format that makes is easy to host the model anywhere.
 
 **Configure Environment:** The script uses the `MODEL_SIZE` and `RUN_MODE` variables from your `.env` file 
 to automatically identify the correct model files to publish. Ensure these are set correctly.
@@ -174,12 +174,12 @@ After the script runs successfully, you will find:
 
 ### Generating the GGUF File
 
-Use the GGUF-my-repo space to convert to GGUF format and quantize model weights to smaller sizes.
+Use the `GGUF-my-repo` Huggingface space to convert to GGUF format and quantize model weights to smaller sizes.
 
 ## Datasets
 
 This project utilizes two main types of data for training the Qwen3-VL classifier. These datasets
-are generated from their raw sources and then uploaded to the Hugging Face Hub, from where they
+are generated from their raw sources and then uploaded to Huggingface, from where they
 are loaded during the fine-tuning process.
 
 ### 1. Knowledge Infusion (KI) Dataset
@@ -225,12 +225,12 @@ Hugging Face Login: Authenticate with Hugging Face using `huggingface-cli login`
 
 **Examples**
 
-Generate knowledge infusion dataset for ontology release 0.4.0 forcing redownload:
+Generate the knowledge infusion dataset for ontology release 0.4.0 forcing redownload:
 ```bash
 uv run scripts/generate_dataset_ki.py --version 0.4.0 --no-cache
 ```
 
-Generate & publish multimodal dataset with for content release 1.0.0:
+Generate & publish the multimodal dataset for content release 1.0.0:
 ```bash
 uv run scripts/generate_dataset_multimodal.py --version 1.0.0 --publish
 ```
