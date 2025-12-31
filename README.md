@@ -27,7 +27,7 @@ uv sync
 
 The fine-tuning process is designed to be run within a Docker container, ensuring a consistent
 and reproducible environment locally and across different cloud providers. The training data
-is loaded directly from the Hugging Face Hub.
+is automatically loaded from Huggingface by the training scripts.
 
 Please install Docker for your operating system if you haven't already:
 
