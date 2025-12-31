@@ -82,21 +82,49 @@ Homebrew (Mac and Linux)
 brew install llama.cpp
 ```
 
+### Download
+
+We need to download the trained classification model *as well as* the original vision projector of Qwen:
+
+```
+# Classification model
+curl -L https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF/resolve/main/qwen3-vl-4b-edugraph-q4_k_m.gguf -o model.gguf
+
+# Qwen vision projector
+curl -L https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF/resolve/main/mmproj-Qwen3VL-4B-Instruct-F16.gguf -o mmproj.gguf
+```
+
 ### CLI
 
 ```bash
-llama-cli --hf-repo christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF --hf-file qwen3-vl-4b-edugraph-q4_k_m.gguf -p "A worksheet for adding single digit numbers"
+llama-mtmd-cli \
+  -m model.gguf \
+  --mmproj mmproj.gguf \
+  -ngl 99 \
+  -c 8192 \
+  --n-predict 1024 \
+  --temp 0.0 \
+  --image ./path/to/image.png
 ```
 
 ### Server
 
 ```bash
-llama-server --hf-repo christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF --hf-file qwen3-vl-4b-edugraph-q4_k_m.gguf -c 2048
+llama-server \
+  -m model.gguf \
+  --mmproj mmproj.gguf \
+  -ngl 99 \
+  -c 8192 \
+  --n_predict 1024 \
+  --temp 0.0 \
+  --port 8080 \
+  --host 0.0.0.0
 ```
 
-GGUF Repo (Q4_K_M): [christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF](https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF)
+EduGraph GGUF Repo: [christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF](https://huggingface.co/christian-bick/Qwen3-VL-4B-EduGraph-Q4_K_M-GGUF)
+Qwen3-VL GGUF Repo: [Qwen/Qwen3-VL-4B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF)
 
-## Using the Model directly
+## Using the Model with transformers
 
 ```python
 from transformers import AutoModelForImageTextToText, AutoProcessor
